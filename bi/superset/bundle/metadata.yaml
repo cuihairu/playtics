@@ -13,6 +13,8 @@ bundle:
     - path: datasets/v_os_by_day.yaml
     - path: datasets/v_exp_exposures_by_day.yaml
     - path: datasets/v_exp_conversion_same_day.yaml
+    - path: datasets/v_exp_conversion_24h.yaml
+    - path: datasets/v_exp_conversion_7d.yaml
   charts:
     - path: charts/events_trend.yaml
     - path: charts/dau_trend.yaml
@@ -23,6 +25,8 @@ bundle:
     - path: charts/os_share.yaml
     - path: charts/exp_exposures_trend.yaml
     - path: charts/exp_conversion_rate.yaml
+    - path: charts/exp_conversion_24h.yaml
+    - path: charts/exp_conversion_7d.yaml
   dashboards:
     - path: dashboards/playtics_overview.yaml
     - path: dashboards/playtics_experiments.yaml

@@ -1,0 +1,25 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+schema: default
+table_name: v_exp_conversion_7d
+description: 7d conversion rate by variant
+owners: []
+uuid: e7777777-7777-4777-8777-777777777777
+columns:
+  - column_name: project_id
+    is_dttm: false
+  - column_name: exposure_date
+    is_dttm: true
+  - column_name: exp
+    is_dttm: false
+  - column_name: variant
+    is_dttm: false
+  - column_name: exposed_users
+    is_dttm: false
+  - column_name: converted_users
+    is_dttm: false
+  - column_name: cr_7d
+    is_dttm: false
+metrics:
+  - metric_name: avg_cr_7d
+    expression: avg(cr_7d)
+    metric_type: numeric

@@ -1,0 +1,15 @@
+slice_name: Experiment Conversion Rate (24h)
+viz_type: echarts_timeseries_line
+params:
+  datasource: e6666666-6666-4666-8666-666666666666
+  viz_type: echarts_timeseries_line
+  x_axis: exposure_date
+  time_grain_sqla: P1D
+  groupby:
+    - variant
+  metrics:
+    - label: avg_cr_24h
+      expressionType: SQL
+      sqlExpression: avg(cr_24h)
+  time_range: No filter
+uuid: e8888888-8888-4888-8888-888888888888

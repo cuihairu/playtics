@@ -1,0 +1,15 @@
+slice_name: Experiment Conversion Rate (7d)
+viz_type: echarts_timeseries_line
+params:
+  datasource: e7777777-7777-4777-8777-777777777777
+  viz_type: echarts_timeseries_line
+  x_axis: exposure_date
+  time_grain_sqla: P1D
+  groupby:
+    - variant
+  metrics:
+    - label: avg_cr_7d
+      expressionType: SQL
+      sqlExpression: avg(cr_7d)
+  time_range: No filter
+uuid: e9999999-9999-4999-8999-999999999999

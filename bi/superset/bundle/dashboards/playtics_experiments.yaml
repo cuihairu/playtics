@@ -23,3 +23,21 @@ metadata:
   slug: playtics-experiments
 uuid: e5555555-5555-4555-8555-555555555555
 version: 1.0.0
+  CHART-e8888888-8888-4888-8888-888888888888:
+    type: CHART
+    id: CHART-e8888888-8888-4888-8888-888888888888
+    children: []
+    meta:
+      chartUuid: e8888888-8888-4888-8888-888888888888
+      width: 24
+      height: 15
+      sliceName: Experiment Conversion Rate (24h)
+  CHART-e9999999-9999-4999-8999-999999999999:
+    type: CHART
+    id: CHART-e9999999-9999-4999-8999-999999999999
+    children: []
+    meta:
+      chartUuid: e9999999-9999-4999-8999-999999999999
+      width: 24
+      height: 15
+      sliceName: Experiment Conversion Rate (7d)

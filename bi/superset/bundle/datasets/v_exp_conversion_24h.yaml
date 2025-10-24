@@ -1,0 +1,31 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+schema: default
+table_name: v_exp_conversion_24h
+description: 24h conversion rate by variant
+owners: []
+uuid: e6666666-6666-4666-8666-666666666666
+columns:
+  - column_name: project_id
+    is_dttm: false
+  - column_name: exposure_date
+    is_dttm: true
+  - column_name: exp
+    is_dttm: false
+  - column_name: variant
+    is_dttm: false
+  - column_name: exposed_users
+    is_dttm: false
+  - column_name: converted_users
+    is_dttm: false
+  - column_name: cr_24h
+    is_dttm: false
+metrics:
+  - metric_name: avg_cr_24h
+    expression: avg(cr_24h)
+    metric_type: numeric
+  - metric_name: sum_exposed
+    expression: sum(exposed_users)
+    metric_type: numeric
+  - metric_name: sum_converted
+    expression: sum(converted_users)
+    metric_type: numeric
