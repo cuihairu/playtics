@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playtics-control
+spec:
+  replicas: {{ .Values.replicaCount.control }}
+  selector:
+    matchLabels: { app: playtics-control }
+  template:
+    metadata:
+      labels: { app: playtics-control }
+    spec:
+      containers:
+        - name: control
+          image: {{ .Values.image.control }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ containerPort: 8085 }]
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: file:/config/application.yaml
+          volumeMounts:
+            - name: cfg
+              mountPath: /config
+          resources: {{- toYaml .Values.resources.control | nindent 12 }}
+      volumes:
+        - name: cfg
+          configMap:
+            name: playtics-control-config
+            items:
+              - key: APPLICATION_YAML
+                path: application.yaml

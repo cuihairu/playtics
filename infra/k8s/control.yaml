@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playtics-control
+  namespace: playtics
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: playtics-control } }
+  template:
+    metadata: { labels: { app: playtics-control } }
+    spec:
+      containers:
+        - name: control
+          image: your-registry/playtics-control:latest
+          ports: [{containerPort: 8085}]
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: file:/config/application.yaml
+          volumeMounts:
+            - name: cfg
+              mountPath: /config
+      volumes:
+        - name: cfg
+          configMap:
+            name: playtics-control-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: playtics-control
+  namespace: playtics
+spec:
+  type: ClusterIP
+  selector: { app: playtics-control }
+  ports:
+    - port: 8085
+      targetPort: 8085
+      name: http

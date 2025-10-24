@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playtics-gateway
+spec:
+  replicas: {{ .Values.replicaCount.gateway }}
+  selector:
+    matchLabels: { app: playtics-gateway }
+  template:
+    metadata:
+      labels: { app: playtics-gateway }
+    spec:
+      containers:
+        - name: gateway
+          image: {{ .Values.image.gateway }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ containerPort: 8080 }]
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: file:/config/application.yaml
+            - name: CLICKHOUSE_URL
+              value: {{ .Values.env.clickhouseUrl | quote }}
+          volumeMounts:
+            - name: cfg
+              mountPath: /config
+          resources: {{- toYaml .Values.resources.gateway | nindent 12 }}
+      volumes:
+        - name: cfg
+          configMap:
+            name: playtics-config
+            items:
+              - key: APPLICATION_YAML
+                path: application.yaml
