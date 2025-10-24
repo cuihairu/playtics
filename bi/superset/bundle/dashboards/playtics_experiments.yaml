@@ -86,6 +86,69 @@ metadata:
         rootPath: []
         excluded: []
       immune: []
+    - id: filter_platform
+      name: Platform
+      type: NATIVE_FILTER
+      filterType: NATIVE_FILTER_SELECT
+      targets:
+        - datasetUuid: f1111111-1111-4111-8111-111111111111
+          column:
+            name: platform
+            type: STRING
+        - datasetUuid: f2222222-2222-4222-8222-222222222222
+          column:
+            name: platform
+            type: STRING
+      defaultDataMask:
+        extraFormData: {}
+        filterState: {}
+      cascadeParentIds: []
+      controlValues:
+        enableEmptyFilter: true
+        defaultToFirstItem: false
+        multiSelect: true
+    - id: filter_country
+      name: Country
+      type: NATIVE_FILTER
+      filterType: NATIVE_FILTER_SELECT
+      targets:
+        - datasetUuid: f1111111-1111-4111-8111-111111111111
+          column:
+            name: country
+            type: STRING
+        - datasetUuid: f2222222-2222-4222-8222-222222222222
+          column:
+            name: country
+            type: STRING
+      defaultDataMask:
+        extraFormData: {}
+        filterState: {}
+      cascadeParentIds: []
+      controlValues:
+        enableEmptyFilter: true
+        defaultToFirstItem: false
+        multiSelect: true
+    - id: filter_app_version
+      name: App Version
+      type: NATIVE_FILTER
+      filterType: NATIVE_FILTER_SELECT
+      targets:
+        - datasetUuid: f1111111-1111-4111-8111-111111111111
+          column:
+            name: app_version
+            type: STRING
+        - datasetUuid: f2222222-2222-4222-8222-222222222222
+          column:
+            name: app_version
+            type: STRING
+      defaultDataMask:
+        extraFormData: {}
+        filterState: {}
+      cascadeParentIds: []
+      controlValues:
+        enableEmptyFilter: true
+        defaultToFirstItem: false
+        multiSelect: true
     filter_exp:
       scope:
         rootPath: []
