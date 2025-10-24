@@ -49,3 +49,13 @@ jobs:
       - run: npm run build
       - name: Run Web SDK consistency tests
         run: npm run test:hash
+
+  ios-spm-tests:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: sdks/ios
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Swift Package tests
+        run: swift test -v
