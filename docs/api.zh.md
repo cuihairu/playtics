@@ -40,7 +40,7 @@ Headers
 说明：`request_id` 同时在响应头 `x-request-id` 返回，可用于排障定位。
 
 幂等与去重
-- `event_id` 必须全局唯一；重复上报服务器返回 `accepted`，不会重复处理。
+- `event_id` 应全局唯一。网关不做去重（重复上报仍返回 `accepted`）；去重由流式任务（Flink enrich/dedup）按 `event_id` + 状态 TTL 完成，保证下游聚合不重复。
 
 校验与治理
 - Schema 版本由控制面管理，网关按 JSON Schema 快速校验（长度、大小、类型）。

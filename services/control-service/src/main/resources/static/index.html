@@ -128,7 +128,7 @@
       <div id="exp_err" style="color:#c00; margin-left:4px;"></div>
       <br/>
       <button onclick="validateExperimentRemote()">Validate</button>
-      <button onclick="upsertExperiment()">Save</button>
+      <button id="exp_save" onclick="upsertExperiment()">Save</button>
     </div>
     <div>
       <table border="1" cellpadding="6" cellspacing="0">
@@ -383,9 +383,10 @@ async function validateExperimentRemote(){
 }
 function showExpErr(errs){
   const d=document.getElementById('exp_err'); if (!d) return;
-  if (!errs || errs.length===0){ d.innerHTML=''; setExpBorder(''); return; }
+  const btn=document.getElementById('exp_save');
+  if (!errs || errs.length===0){ d.innerHTML=''; setExpBorder(''); if (btn) btn.disabled=false; return; }
   const items = errs.map(e=>{ const s=String(e); const idx=s.indexOf(':'); if(idx>0){ const path=s.slice(0,idx).trim(); const msg=s.slice(idx+1).trim(); return `<div><a href=\"#\" onclick=\"jumpToPath('${'${'}path.replace(/'/g, "\\'")}'}');return false;\">${'${'}path}</a>: ${'${'}msg}</div>`;} return `<div>${'${'}s}</div>`; });
-  d.innerHTML = items.join(''); setExpBorder('red');
+  d.innerHTML = items.join(''); setExpBorder('red'); if (btn) btn.disabled=true;
 }
 function setExpBorder(color){ const el=document.getElementById('exp_config'); if(!el) return; el.style.borderColor = color||''; el.style.borderWidth = color? '2px':'1px'; el.style.borderStyle = 'solid'; }
 function jumpToPath(path){ try { const el=document.getElementById('exp_config'); const txt=el.value; if(!txt) return; let token=String(path||'').replace(/^\$\.?/,''); const parts=token.split('.'); let last=parts[parts.length-1]; last=last.replace(/\[\d+\]/g,''); last=last.replace(/^\[(.+)\]$/,'$1'); if(!last) return; const re=new RegExp('"'+last.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'"\\s*:'); const m=re.exec(txt); if(m&&typeof m.index==='number'){ el.focus(); el.setSelectionRange(m.index, Math.min(m.index+m[0].length, txt.length)); } else { el.focus(); } } catch{} }
