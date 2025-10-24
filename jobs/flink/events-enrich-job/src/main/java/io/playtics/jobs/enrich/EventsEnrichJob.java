@@ -1,18 +1,31 @@
 package io.playtics.jobs.enrich;
 
 import org.apache.avro.generic.GenericRecord;
+import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.state.StateTtlConfig;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.time.Time;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.JdbcSink;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.util.Collector;
+import org.apache.flink.util.OutputTag;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Duration;
 
 public class EventsEnrichJob {
     public static void main(String[] args) throws Exception {
@@ -33,9 +46,40 @@ public class EventsEnrichJob {
                 .setDeserializer(new ApicurioAvroFlinkDeserializer(registry))
                 .build();
 
-        DataStreamSource<GenericRecord> stream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "events-raw");
+        var wm = WatermarkStrategy.<GenericRecord>forBoundedOutOfOrderness(Duration.ofMinutes(5))
+                .withTimestampAssigner((SerializableTimestampAssigner<GenericRecord>) (element, recordTimestamp) -> {
+                    Long tsServer = (Long) element.get("ts_server");
+                    Long tsClient = (Long) element.get("ts_client");
+                    long micros = tsServer != null ? tsServer : (tsClient != null ? tsClient : System.currentTimeMillis() * 1000L);
+                    return micros / 1000L; // to ms
+                });
 
-        var mapped = stream.map((MapFunction<GenericRecord, EventRow>) record -> {
+        DataStream<GenericRecord> stream = env.fromSource(source, wm, "events-raw");
+
+        // DLQ 侧输出
+        final OutputTag<String> DLQ = new OutputTag<>("dlq", Types.STRING);
+
+        // 基础校验（必填字段）+ 填充 ts_server
+        DataStream<GenericRecord> validated = stream.process(new org.apache.flink.streaming.api.functions.ProcessFunction<GenericRecord, GenericRecord>() {
+            @Override
+            public void processElement(GenericRecord r, Context ctx, Collector<GenericRecord> out) throws Exception {
+                if (r.get("event_id") == null || r.get("event_name") == null || r.get("project_id") == null || r.get("device_id") == null) {
+                    ctx.output(DLQ, toDlqJson(r, "invalid_schema"));
+                    return;
+                }
+                if (r.get("ts_server") == null) {
+                    r.put("ts_server", System.currentTimeMillis() * 1000L); // micros
+                }
+                out.collect(r);
+            }
+        });
+
+        // 去重（按 event_id，7 天 TTL）
+        DataStream<GenericRecord> deduped = validated
+                .keyBy(r -> String.valueOf(r.get("event_id")))
+                .process(new DedupFunction(DLQ));
+
+        var mapped = deduped.map((MapFunction<GenericRecord, EventRow>) record -> {
             EventRow row = new EventRow();
             row.project_id = str(record.get("project_id"));
             row.ts_server = toTimestamp(record.get("ts_server"));
@@ -83,6 +127,17 @@ public class EventsEnrichJob {
 
         mapped.addSink(sink).name("clickhouse-sink");
 
+        // DLQ: 输出到 Kafka 文本主题（JSON 字符串）
+        KafkaSink<String> dlqSink = KafkaSink.<String>builder()
+                .setBootstrapServers(bootstrap)
+                .setRecordSerializer(KafkaRecordSerializationSchema.builder()
+                        .setTopic(System.getProperty("kafka.dlq", "playtics.deadletter"))
+                        .setValueSerializationSchema(new org.apache.flink.api.common.serialization.SimpleStringSchema())
+                        .build())
+                .build();
+
+        validated.getSideOutput(DLQ).sinkTo(dlqSink).name("dlq-sink");
+
         env.execute("playtics-events-enrich");
     }
 
@@ -108,5 +163,42 @@ public class EventsEnrichJob {
         public String props_json;
         public BigDecimal revenue_amount;
         public String revenue_currency;
+    }
+
+    // 去重函数：按 event_id 维度，7天 TTL；重复事件输出到 DLQ 侧输出
+    public static class DedupFunction extends KeyedProcessFunction<String, GenericRecord, GenericRecord> {
+        private final OutputTag<String> dlq;
+        private transient ValueState<Long> seenTs;
+
+        public DedupFunction(OutputTag<String> dlq) { this.dlq = dlq; }
+
+        @Override
+        public void open(org.apache.flink.configuration.Configuration parameters) {
+            StateTtlConfig ttl = StateTtlConfig.newBuilder(Time.days(7))
+                    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+                    .setStateVisibility(StateTtlConfig.StateVisibility.ReturnExpiredIfNotCleanedUp)
+                    .build();
+            ValueStateDescriptor<Long> desc = new ValueStateDescriptor<>("seen_ts", Long.class);
+            desc.enableTimeToLive(ttl);
+            seenTs = getRuntimeContext().getState(desc);
+        }
+
+        @Override
+        public void processElement(GenericRecord value, Context ctx, Collector<GenericRecord> out) throws Exception {
+            Long seen = seenTs.value();
+            if (seen != null) {
+                ctx.output(dlq, toDlqJson(value, "duplicate"));
+                return;
+            }
+            seenTs.update(System.currentTimeMillis());
+            out.collect(value);
+        }
+    }
+
+    private static String toDlqJson(GenericRecord r, String reason) {
+        try {
+            String id = r != null && r.get("event_id") != null ? r.get("event_id").toString() : "";
+            return "{\"event_id\":\"" + id + "\",\"reason\":\"" + reason + "\"}";
+        } catch (Exception e) { return "{\"event_id\":\"\",\"reason\":\""+reason+"\"}"; }
     }
 }
