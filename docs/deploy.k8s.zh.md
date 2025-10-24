@@ -18,6 +18,9 @@ helm upgrade --install playtics ./infra/helm/playtics -n playtics --create-names
 ```
 - Gateway: svc/playtics-gateway:8080；Control: svc/playtics-control:8085
 - 可选：`hpa.gateway.*` 开启 HPA
+ - 可选：Ingress（`ingress.gateway.*` 与 `ingress.control.*`）启用，对外暴露入口
+ - 可选：探针与调度（`gateway.*` / `control.*` 下的 `livenessProbe`/`readinessProbe`、`nodeSelector`、`tolerations`、`affinity`、`topologySpreadConstraints`）
+ - 可选：Service 注解（`service.*.annotations`）和通用标签（`commonLabels`）
 
 方式二：Raw YAML
 ```bash

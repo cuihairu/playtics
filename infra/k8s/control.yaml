@@ -29,6 +29,7 @@ kind: Service
 metadata:
   name: playtics-control
   namespace: playtics
+  annotations: {}
 spec:
   type: ClusterIP
   selector: { app: playtics-control }
