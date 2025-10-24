@@ -6,6 +6,7 @@ let package = Package(
     platforms: [ .iOS(.v13), .macOS(.v12) ],
     products: [ .library(name: "Playtics", targets: ["Playtics"]) ],
     targets: [
-        .target(name: "Playtics", path: "Sources/Playtics")
+        .target(name: "Playtics", path: "Sources/Playtics"),
+        .testTarget(name: "PlayticsTests", dependencies: ["Playtics"], path: "Tests/PlayticsTests")
     ]
 )
