@@ -26,6 +26,8 @@
 
 安全
 - HMAC 可选，`x-signature` 按时间 + 体组成签名。
+ - 网关默认时间窗 300 秒，超时返回 401（`signature_expired`）。
+ - 内容编码容错：`content-encoding` 大小写与多值变体会被宽松处理；建议客户端保持一致。
 
 示例（Web TS）
 ```ts

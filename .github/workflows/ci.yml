@@ -47,3 +47,5 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm ci || npm i
       - run: npm run build
+      - name: Run Web SDK consistency tests
+        run: npm run test:hash
