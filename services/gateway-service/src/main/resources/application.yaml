@@ -1,5 +1,8 @@
 server:
   port: 8080
+  compression:
+    enabled: true
+    min-response-size: 1024
 
 management:
   endpoints:
@@ -13,6 +16,9 @@ playtics:
     topic: playtics.events_raw
     registryUrl: http://localhost:8081/apis/registry/v2
     dlqTopic: playtics.deadletter
+    producer:
+      lingerMs: 5
+      batchSize: 65536
   auth:
     # 示例: apiKey->secret，生产请使用数据库/控制面
     keys:

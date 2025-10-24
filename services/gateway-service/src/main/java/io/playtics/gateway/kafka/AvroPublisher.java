@@ -29,6 +29,12 @@ public class AvroPublisher {
     @Value("${playtics.kafka.registryUrl}")
     private String registryUrl;
 
+    @Value("${playtics.kafka.producer.lingerMs:5}")
+    private int lingerMs;
+
+    @Value("${playtics.kafka.producer.batchSize:65536}")
+    private int batchSize;
+
     @Value("classpath:schemas/playtics-event.avsc")
     private Resource avroSchemaRes;
 
@@ -47,8 +53,8 @@ public class AvroPublisher {
         Properties p = new Properties();
         p.put("bootstrap.servers", bootstrap);
         p.put("acks", "all");
-        p.put("linger.ms", "5");
-        p.put("batch.size", "65536");
+        p.put("linger.ms", Integer.toString(lingerMs));
+        p.put("batch.size", Integer.toString(batchSize));
         p.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         // Apicurio Avro 序列化器
         p.put("value.serializer", "io.apicurio.registry.serde.avro.AvroKafkaSerializer");
