@@ -11,6 +11,12 @@ bash scripts/e2e.sh
 4) 使用新 Key 发送两条 NDJSON 事件到 /v1/batch
 5) 若本机有 Flink CLI，则构建并启动 4 个 Flink 作业（enrich/sessions/retention/funnels），等待 10s 后到 ClickHouse 校验 `events` 行数
 
+Superset 仪表盘导入（可选）
+```bash
+bash scripts/superset-import.sh
+# 浏览器访问 http://localhost:8088 ，登录 admin/admin，看到 Playtics Overview 仪表盘
+```
+
 依赖
 - Docker 与 docker compose（用于依赖栈）
 - Gradle（或项目内 gradlew）
