@@ -111,3 +111,30 @@ version: 1.0.0
       width: 24
       height: 15
       sliceName: Experiment Conversion Rate (7d)
+  CHART-f4444444-4444-4444-8444-444444444444:
+    type: CHART
+    id: CHART-f4444444-4444-4444-8444-444444444444
+    children: []
+    meta:
+      chartUuid: f4444444-4444-4444-8444-444444444444
+      width: 12
+      height: 15
+      sliceName: Experiment Exposures by Platform
+  CHART-f5555555-5555-4555-8555-555555555555:
+    type: CHART
+    id: CHART-f5555555-5555-4555-8555-555555555555
+    children: []
+    meta:
+      chartUuid: f5555555-5555-4555-8555-555555555555
+      width: 12
+      height: 15
+      sliceName: Experiment CR 24h by Platform
+  CHART-f6666666-6666-4666-8666-666666666666:
+    type: CHART
+    id: CHART-f6666666-6666-4666-8666-666666666666
+    children: []
+    meta:
+      chartUuid: f6666666-6666-4666-8666-666666666666
+      width: 24
+      height: 15
+      sliceName: Experiment CR 24h by Country (Top 10)

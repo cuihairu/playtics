@@ -1,0 +1,17 @@
+slice_name: Experiment CR 24h by Country (Top 10)
+viz_type: echarts_timeseries_line
+params:
+  datasource: f2222222-2222-4222-8222-222222222222
+  viz_type: echarts_timeseries_line
+  x_axis: exposure_date
+  time_grain_sqla: P1D
+  groupby:
+    - country
+  row_limit: 10
+  metrics:
+    - label: avg_cr_24h
+      expressionType: SQL
+      sqlExpression: avg(cr_24h)
+  time_range: No filter
+uuid: f6666666-6666-4666-8666-666666666666
+
