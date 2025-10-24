@@ -20,6 +20,8 @@ playtics:
   ratelimit:
     rpm: 600          # per api key per minute
     ipRpm: 300        # per client IP per minute
+  control:
+    url: http://localhost:8085
   props:
     allowlist: []   # 示例: [level,stars,amount,currency,exp,variant]
   event:
