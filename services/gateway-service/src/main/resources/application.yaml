@@ -18,7 +18,8 @@ playtics:
     keys:
       pk_test_example: sk_test_secret
   ratelimit:
-    rpm: 600
+    rpm: 600          # per api key per minute
+    ipRpm: 300        # per client IP per minute
   props:
     allowlist: []   # 示例: [level,stars,amount,currency,exp,variant]
   event:

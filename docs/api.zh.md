@@ -29,6 +29,16 @@ Headers
 }
 ```
 
+错误响应（统一格式）
+```json
+{
+  "code": "too_many_requests",
+  "message": "rate limited",
+  "request_id": "f6d1..."
+}
+```
+说明：`request_id` 同时在响应头 `x-request-id` 返回，可用于排障定位。
+
 幂等与去重
 - `event_id` 必须全局唯一；重复上报服务器返回 `accepted`，不会重复处理。
 
