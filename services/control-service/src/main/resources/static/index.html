@@ -137,6 +137,9 @@ async function listProjectsPaged(pg){
   for (const p of items) {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${p.id}</td><td>${p.name||''}</td><td><button onclick="delProject('${'${'}p.id}'}')">Delete</button></td>`;
+    const act = tr.lastElementChild || tr.querySelector('td:last-child');
+    const rb = document.createElement('button'); rb.textContent='Rename'; rb.onclick=()=>renameProject(p.id, p.name||'');
+    if (act) act.insertBefore(rb, act.firstChild);
     tb.appendChild(tr);
   }
   const start = PPAGE*PSIZE+1, end = Math.min((PPAGE+1)*PSIZE, PTOTAL);
@@ -146,6 +149,13 @@ function clearProjectSearch(){ document.getElementById('pq').value=''; PPAGE=0; 
 function projPrev(){ if (PPAGE>0){ PPAGE--; listProjectsPaged(); } }
 function projNext(){ if ((PPAGE+1)*PSIZE<PTOTAL){ PPAGE++; listProjectsPaged(); } }
 async function delProject(pid){ if (!confirm('delete project and its keys?')) return; await fetch('/api/projects/'+pid,{method:'DELETE',headers:{'x-admin-token':TOK}}); listProjectsPaged(); }
+async function renameProject(pid, oldName){
+  const nn = prompt('New name for project '+pid+':', oldName||'');
+  if (nn===null) return;
+  await fetch('/api/projects',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify({id:pid,name:nn})});
+  await listProjectsPaged();
+  await loadProjectsFilter();
+}
 async function listKeys(){
   SIZE = parseInt(document.getElementById('pageSize').value||'20'); if (isNaN(SIZE)||SIZE<1) SIZE=20;
   const params = new URLSearchParams(); params.set('page', PAGE); params.set('size', SIZE);
