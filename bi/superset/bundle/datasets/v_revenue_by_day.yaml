@@ -1,0 +1,23 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+description: Revenue by day and currency (sum of revenue_amount)
+owners: []
+schema: default
+table_name: v_revenue_by_day
+uuid: c1aa1111-aaaa-4bbb-8ccc-111122223333
+columns:
+  - column_name: project_id
+    is_dttm: false
+    type: String
+  - column_name: event_date
+    is_dttm: true
+    type: Date
+  - column_name: revenue_currency
+    is_dttm: false
+    type: String
+  - column_name: revenue
+    is_dttm: false
+    type: Decimal
+metrics:
+  - metric_name: sum_revenue
+    expression: sum(revenue)
+    metric_type: numeric

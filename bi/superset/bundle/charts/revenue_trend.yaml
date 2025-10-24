@@ -1,0 +1,15 @@
+slice_name: Revenue Trend
+viz_type: echarts_timeseries_line
+params:
+  datasource: c1aa1111-aaaa-4bbb-8ccc-111122223333
+  viz_type: echarts_timeseries_line
+  x_axis: event_date
+  time_grain_sqla: P1D
+  metrics:
+    - label: sum_revenue
+      expressionType: SQL
+      sqlExpression: sum(revenue)
+  groupby:
+    - revenue_currency
+  time_range: No filter
+uuid: deadbeef-0000-4444-8888-aaaaaaaaaaaa

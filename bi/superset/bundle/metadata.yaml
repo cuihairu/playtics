@@ -8,10 +8,16 @@ bundle:
     - path: datasets/v_dau_trend.yaml
     - path: datasets/retention_daily.yaml
     - path: datasets/funnels_2step.yaml
+    - path: datasets/v_revenue_by_day.yaml
+    - path: datasets/v_ua_by_day.yaml
+    - path: datasets/v_os_by_day.yaml
   charts:
     - path: charts/events_trend.yaml
     - path: charts/dau_trend.yaml
     - path: charts/retention_pivot.yaml
     - path: charts/funnel_bar.yaml
+    - path: charts/revenue_trend.yaml
+    - path: charts/ua_share.yaml
+    - path: charts/os_share.yaml
   dashboards:
     - path: dashboards/playtics_overview.yaml

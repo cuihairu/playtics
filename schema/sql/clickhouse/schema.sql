@@ -72,6 +72,51 @@ SELECT project_id, event_date, uniqExactMerge(dau) AS dau
 FROM mv_dau
 GROUP BY project_id, event_date;
 
+-- 收入：按日与货币聚合
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_revenue_by_day
+ENGINE = AggregatingMergeTree
+PARTITION BY (project_id, toYYYYMM(event_date))
+ORDER BY (project_id, event_date, revenue_currency)
+AS
+SELECT
+  project_id,
+  toDate(ts_server) AS event_date,
+  revenue_currency,
+  sumState(revenue_amount) AS amount
+FROM events
+WHERE revenue_amount > 0
+GROUP BY project_id, event_date, revenue_currency;
+
+CREATE OR REPLACE VIEW v_revenue_by_day AS
+SELECT project_id, event_date, revenue_currency, sumMerge(amount) AS revenue
+FROM mv_revenue_by_day
+GROUP BY project_id, event_date, revenue_currency;
+
+-- UA/OS 维度（按 props_json 提取）
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_ua_os_by_day
+ENGINE = AggregatingMergeTree
+PARTITION BY (project_id, toYYYYMM(event_date))
+ORDER BY (project_id, event_date, ua_family, os_family)
+AS
+SELECT
+  project_id,
+  toDate(ts_server) AS event_date,
+  ifNull(JSONExtractString(props_json,'ua_family'),'') AS ua_family,
+  ifNull(JSONExtractString(props_json,'os_family'),'') AS os_family,
+  countState() AS c
+FROM events
+GROUP BY project_id, event_date, ua_family, os_family;
+
+CREATE OR REPLACE VIEW v_ua_by_day AS
+SELECT project_id, event_date, ua_family, countMerge(c) AS events
+FROM mv_ua_os_by_day
+GROUP BY project_id, event_date, ua_family;
+
+CREATE OR REPLACE VIEW v_os_by_day AS
+SELECT project_id, event_date, os_family, countMerge(c) AS events
+FROM mv_ua_os_by_day
+GROUP BY project_id, event_date, os_family;
+
 -- Retention 按 cohort 日与偏移 d（0/1/7/30）聚合
 CREATE TABLE IF NOT EXISTS retention_daily
 (

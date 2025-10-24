@@ -1,0 +1,15 @@
+slice_name: OS Share
+viz_type: bar
+params:
+  datasource: c3cc3333-cccc-4ddd-8eee-333344445555
+  viz_type: bar
+  columns:
+    - event_date
+  groupby:
+    - os_family
+  metrics:
+    - label: sum_events
+      expressionType: SQL
+      sqlExpression: sum(events)
+  time_range: No filter
+uuid: deadbeef-2222-4444-8888-cccccccccccc

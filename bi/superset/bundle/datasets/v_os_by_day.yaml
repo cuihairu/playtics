@@ -1,0 +1,23 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+description: OS family by day (events count)
+owners: []
+schema: default
+table_name: v_os_by_day
+uuid: c3cc3333-cccc-4ddd-8eee-333344445555
+columns:
+  - column_name: project_id
+    is_dttm: false
+    type: String
+  - column_name: event_date
+    is_dttm: true
+    type: Date
+  - column_name: os_family
+    is_dttm: false
+    type: String
+  - column_name: events
+    is_dttm: false
+    type: UInt64
+metrics:
+  - metric_name: sum_events
+    expression: sum(events)
+    metric_type: numeric

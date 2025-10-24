@@ -1,0 +1,15 @@
+slice_name: UA Share
+viz_type: bar
+params:
+  datasource: c2bb2222-bbbb-4ccc-8ddd-222233334444
+  viz_type: bar
+  columns:
+    - event_date
+  groupby:
+    - ua_family
+  metrics:
+    - label: sum_events
+      expressionType: SQL
+      sqlExpression: sum(events)
+  time_range: No filter
+uuid: deadbeef-1111-4444-8888-bbbbbbbbbbbb
