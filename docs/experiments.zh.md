@@ -35,10 +35,16 @@ playtics.expose(exp.id, variant);
 SDK 使用示例
 - Web (TS)
 ```ts
-import { fetchExperiments, assignAllWithTargeting } from './dist/index.js';
-const exps = await fetchExperiments('http://localhost:8085', 'p1');
+import { fetchExperimentsCached, assignAllWithTargeting, startExperimentsAutoRefresh } from './dist/index.js';
+// 读取本地缓存（默认 5 分钟 TTL），并后台刷新
+const exps = await fetchExperimentsCached('http://localhost:8085', 'p1');
 const ctx = { platform: 'web', appVersion: '1.2.3', country: 'US' };
 const assignments = await assignAllWithTargeting(pt, exps, userId || deviceId, ctx);
+// 可选：自动刷新实验配置（默认每 5 分钟），刷新后回调
+const stop = startExperimentsAutoRefresh('http://localhost:8085', 'p1', (newExps)=>{
+  // 在合适时机重新分配/曝光，或仅用于 UI 控制
+});
+// 需要时停止：stop();
 ```
 - Android (Kotlin)
 ```kotlin

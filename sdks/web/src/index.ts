@@ -320,3 +320,54 @@ export async function assignAllWithTargeting(pt: Playtics, exps: ExperimentCfg[]
   }
   return res;
 }
+
+// ===== Experiments cache and auto-refresh =====
+type ExperimentsCacheEntry = { ts: number; exps: ExperimentCfg[] };
+function expsCacheKey(projectId: string) { return `pt_experiments_${projectId}`; }
+
+export function getCachedExperiments(projectId: string): ExperimentCfg[] | null {
+  const raw = storageGet(expsCacheKey(projectId)); if (!raw) return null;
+  try { const o = JSON.parse(raw) as ExperimentsCacheEntry; if (!Array.isArray(o.exps)) return null; return o.exps; } catch { return null; }
+}
+
+export async function fetchExperimentsCached(controlEndpoint: string, projectId: string, ttlMs = 300_000): Promise<ExperimentCfg[]> {
+  const now = nowMs();
+  try {
+    const raw = storageGet(expsCacheKey(projectId));
+    if (raw) {
+      const o = JSON.parse(raw) as ExperimentsCacheEntry;
+      if (o && Array.isArray(o.exps) && typeof o.ts === 'number' && (now - o.ts) < ttlMs) {
+        // background refresh
+        void fetchExperiments(controlEndpoint, projectId).then(exps => {
+          storageSet(expsCacheKey(projectId), JSON.stringify({ ts: nowMs(), exps }));
+        }).catch(()=>{});
+        return o.exps;
+      }
+    }
+  } catch {}
+  const exps = await fetchExperiments(controlEndpoint, projectId);
+  storageSet(expsCacheKey(projectId), JSON.stringify({ ts: nowMs(), exps }));
+  return exps;
+}
+
+export function startExperimentsAutoRefresh(controlEndpoint: string, projectId: string, onUpdate: (exps: ExperimentCfg[]) => void, intervalMs = 300_000): () => void {
+  let stopped = false;
+  // emit cached immediately if any
+  const cached = getCachedExperiments(projectId); if (cached) { try { onUpdate(cached); } catch {} }
+  const tick = async () => {
+    try {
+      const exps = await fetchExperiments(controlEndpoint, projectId);
+      storageSet(expsCacheKey(projectId), JSON.stringify({ ts: nowMs(), exps }));
+      if (!stopped) onUpdate(exps);
+    } catch {}
+  };
+  // initial refresh in background
+  void tick();
+  const h = setInterval(()=>{ void tick(); }, intervalMs);
+  return () => { stopped = true; clearInterval(h); };
+}
+
+export async function ensureFreshExperimentsAndAssign(pt: Playtics, controlEndpoint: string, projectId: string, userKey: string, ctx: ExpContext, ttlMs = 300_000): Promise<Record<string,string>> {
+  const exps = await fetchExperimentsCached(controlEndpoint, projectId, ttlMs);
+  return assignAllWithTargeting(pt, exps, userKey, ctx);
+}
