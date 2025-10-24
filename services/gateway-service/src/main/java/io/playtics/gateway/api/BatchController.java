@@ -6,6 +6,7 @@ import io.playtics.common.model.Event;
 import io.playtics.gateway.kafka.AvroPublisher;
 import io.playtics.gateway.kafka.DlqPublisher;
 import io.playtics.gateway.config.PropsPolicy;
+import io.playtics.gateway.config.JsonSchemaValidator;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -24,7 +25,8 @@ public class BatchController {
     private final AvroPublisher publisher;
     private final DlqPublisher dlq;
     private final PropsPolicy propsPolicy;
-    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; }
+    private final JsonSchemaValidator schemaValidator;
+    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy, JsonSchemaValidator schemaValidator) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; this.schemaValidator = schemaValidator; }
 
     public static class BatchResponse {
         public List<String> accepted = new CopyOnWriteArrayList<>();
@@ -74,6 +76,16 @@ public class BatchController {
                     rej.put("reason", "payload_too_large");
                     resp.rejected.add(rej);
                     dlq.publish(e.eventId, "payload_too_large", toJsonSilently(e));
+                    continue;
+                }
+                // JSON Schema validate
+                String err = schemaValidator.validate(e);
+                if (err != null) {
+                    HashMap<String, String> rej = new HashMap<>();
+                    rej.put("event_id", e.eventId);
+                    rej.put("reason", "invalid_schema");
+                    resp.rejected.add(rej);
+                    dlq.publish(e.eventId, "invalid_schema", toJsonSilently(e));
                     continue;
                 }
                 try { publisher.publish(e); resp.accepted.add(e.eventId); }

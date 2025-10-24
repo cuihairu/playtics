@@ -17,6 +17,7 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("org.apache.avro:avro:1.11.3")
+  implementation("com.networknt:json-schema-validator:1.0.91")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
