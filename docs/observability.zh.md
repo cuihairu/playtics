@@ -16,9 +16,20 @@
     OTEL_LOGS_EXPORTER=none
     OTEL_SERVICE_NAME=playtics-gateway
     ```
+    示例（本地）：
+    ```bash
+    # 假设 agent 放在 var/opentelemetry-javaagent.jar
+    JAVA_TOOL_OPTIONS="-javaagent:$(pwd)/var/opentelemetry-javaagent.jar" \
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 \
+    OTEL_METRICS_EXPORTER=otlp \
+    OTEL_TRACES_EXPORTER=otlp \
+    OTEL_LOGS_EXPORTER=none \
+    OTEL_SERVICE_NAME=playtics-gateway \
+    ./gradlew :services:gateway-service:bootRun
+    ```
   - 方式二：Micrometer OTel Registry（代码集成）：引入 `micrometer-registry-otlp` 并配置 MeterRegistry 指向 Collector
 - Flink 作业：可启用 OTel Metrics Reporter，将指标上报至 Collector
 
 Grafana 面板
 - 已预置的 `Playtics Overview` 显示 OTel Collector 接收的 Spans/Metrics/Logs 速率与 uptime
-- 如需应用级面板（HTTP 请求、JVM、GC 等），请在应用开启 OTel 上报后导入 JVM/Netty/Spring 相关 Dashboard（Grafana 官方/社区模板）
+- 已预置 `Playtics JVM` 与 `Playtics HTTP Server` 两个面板（Micrometer 与 OTel 指标名均有覆盖），在应用开启 OTel 上报后可直接查看

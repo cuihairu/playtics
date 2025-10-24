@@ -8,3 +8,7 @@ folders:
     dashboards:
       - uid: playtics-overview
         file: /var/lib/grafana/dashboards/playtics-overview.json
+      - uid: playtics-jvm
+        file: /var/lib/grafana/dashboards/playtics-jvm.json
+      - uid: playtics-http
+        file: /var/lib/grafana/dashboards/playtics-http.json
