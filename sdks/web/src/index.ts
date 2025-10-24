@@ -284,3 +284,39 @@ export async function assignAllAndExpose(pt: Playtics, exps: ExperimentCfg[], us
   }
   return res;
 }
+
+// Targeting helpers
+export type Targeting = { platform?: string[]; appVersionMin?: string; appVersionMax?: string; countries?: string[] };
+export type ExpContext = { platform?: string; appVersion?: string; country?: string };
+
+export function versionGte(a: string, b: string): boolean {
+  const pa = a.split('.').map(x=>parseInt(x,10)||0);
+  const pb = b.split('.').map(x=>parseInt(x,10)||0);
+  for (let i=0;i<Math.max(pa.length,pb.length);i++) { const ai=pa[i]||0, bi=pb[i]||0; if (ai>bi) return true; if (ai<bi) return false; }
+  return true;
+}
+export function versionLte(a: string, b: string): boolean { return versionGte(b,a); }
+
+export function matchTargeting(t: Targeting|undefined, ctx: ExpContext): boolean {
+  if (!t) return true;
+  if (t.platform && t.platform.length && ctx.platform && !t.platform.includes(ctx.platform)) return false;
+  if (t.appVersionMin && ctx.appVersion && !versionGte(ctx.appVersion, t.appVersionMin)) return false;
+  if (t.appVersionMax && ctx.appVersion && !versionLte(ctx.appVersion, t.appVersionMax)) return false;
+  if (t.countries && t.countries.length && ctx.country) {
+    const c = ctx.country.toUpperCase(); if (!t.countries.map(x=>x.toUpperCase()).includes(c)) return false;
+  }
+  return true;
+}
+
+export async function assignAllWithTargeting(pt: Playtics, exps: ExperimentCfg[], userKey: string, ctx: ExpContext): Promise<Record<string,string>> {
+  const res: Record<string,string> = {};
+  for (const e of exps) {
+    const cfg = e.config || {} as any;
+    const t = (cfg.targeting as Targeting) || undefined;
+    if (!matchTargeting(t, ctx)) continue;
+    const vars = (cfg.variants as Variant[]) || [];
+    const v = assignVariant({ id: e.id, salt: e.salt, variants: vars }, userKey);
+    res[e.id] = v; pt.expose(e.id, v);
+  }
+  return res;
+}

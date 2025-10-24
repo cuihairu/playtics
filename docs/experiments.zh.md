@@ -8,7 +8,7 @@
 ```json
 {
   "variants": [ {"name":"A","weight":50}, {"name":"B","weight":50} ],
-  "targeting": { "platform":["android","ios"], "appVersionMin":"1.0.0", "countries":["US","CN"] },
+  "targeting": { "platform":["android","ios"], "appVersionMin":"1.0.0", "appVersionMax":"2.0.0", "countries":["US","CN"] },
   "metrics": { "primary":"level_complete", "secondary":["revenue"] }
 }
 ```
@@ -35,9 +35,10 @@ playtics.expose(exp.id, variant);
 SDK 使用示例
 - Web (TS)
 ```ts
-import { fetchExperiments, assignAllAndExpose } from './dist/index.js';
+import { fetchExperiments, assignAllWithTargeting } from './dist/index.js';
 const exps = await fetchExperiments('http://localhost:8085', 'p1');
-const assignments = await assignAllAndExpose(pt, exps, userId || deviceId);
+const ctx = { platform: 'web', appVersion: '1.2.3', country: 'US' };
+const assignments = await assignAllWithTargeting(pt, exps, userId || deviceId, ctx);
 ```
 - Android (Kotlin)
 ```kotlin
