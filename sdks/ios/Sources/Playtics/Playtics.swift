@@ -301,6 +301,58 @@ public final class Playtics {
             completion(.success(data ?? Data()))
         }.resume()
     }
+
+    // ===== Experiments cache & auto refresh =====
+    private func expsKey(_ pid: String) -> String { "pt_experiments_\(pid)" }
+
+    public func getCachedExperiments(_ projectId: String) -> Data? {
+        if let s = UserDefaults.standard.string(forKey: expsKey(projectId)) {
+            let parts = s.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+            if parts.count == 2 { return Data(String(parts[1]).utf8) }
+        }
+        return nil
+    }
+
+    public func fetchExperimentsCached(controlURL: URL, projectId: String, ttlSec: TimeInterval = 300, completion: @escaping (Data)->Void) {
+        let now = Date().timeIntervalSince1970
+        if let s = UserDefaults.standard.string(forKey: expsKey(projectId)) {
+            let parts = s.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+            if parts.count == 2, let ts = TimeInterval(parts[0]), now - ts < ttlSec {
+                completion(Data(String(parts[1]).utf8))
+                // background refresh
+                self.fetchExperiments(controlURL: controlURL, projectId: projectId) { res in
+                    if case .success(let data) = res {
+                        let entry = String(Int(Date().timeIntervalSince1970)) + "\n" + String(data: data, encoding: .utf8)!
+                        UserDefaults.standard.set(entry, forKey: self.expsKey(projectId))
+                    }
+                }
+                return
+            }
+        }
+        self.fetchExperiments(controlURL: controlURL, projectId: projectId) { res in
+            if case .success(let data) = res {
+                UserDefaults.standard.set(String(Int(now)) + "\n" + String(data: data, encoding: .utf8)!, forKey: self.expsKey(projectId))
+                completion(data)
+            } else {
+                completion(Data())
+            }
+        }
+    }
+
+    @discardableResult
+    public func startExperimentsAutoRefresh(controlURL: URL, projectId: String, intervalSec: TimeInterval = 300, onUpdate: @escaping (Data)->Void) -> Timer {
+        let t = Timer.scheduledTimer(withTimeInterval: intervalSec, repeats: true) { _ in
+            self.fetchExperiments(controlURL: controlURL, projectId: projectId) { res in
+                if case .success(let data) = res {
+                    UserDefaults.standard.set(String(Int(Date().timeIntervalSince1970)) + "\n" + String(data: data, encoding: .utf8)!, forKey: self.expsKey(projectId))
+                    onUpdate(data)
+                }
+            }
+        }
+        // fire immediately once
+        t.fire()
+        return t
+    }
 }
 
 fileprivate extension String {
