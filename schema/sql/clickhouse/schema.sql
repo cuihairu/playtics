@@ -61,6 +61,17 @@ SELECT
 FROM events
 GROUP BY project_id, event_date;
 
+-- 便于 BI 的视图
+CREATE OR REPLACE VIEW v_events_trend AS
+SELECT project_id, event_date, event_name, countMerge(evts) AS events
+FROM mv_events_by_day
+GROUP BY project_id, event_date, event_name;
+
+CREATE OR REPLACE VIEW v_dau_trend AS
+SELECT project_id, event_date, uniqExactMerge(dau) AS dau
+FROM mv_dau
+GROUP BY project_id, event_date;
+
 -- Retention 按 cohort 日与偏移 d（0/1/7/30）聚合
 CREATE TABLE IF NOT EXISTS retention_daily
 (
