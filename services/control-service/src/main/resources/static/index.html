@@ -70,7 +70,9 @@
     <h3>Keys</h3>
     <div>
       <input id="q" placeholder="search apiKey/name" />
-      <input id="projFilter" placeholder="projectId filter" />
+      <input id="projFilter" placeholder="projectId filter" style="display:none" />
+      <label>Project:</label>
+      <select id="projSelect"><option value="">(All)</option></select>
       <input id="pageSize" placeholder="size" value="20" size="4" />
       <button onclick="listKeys(0)">Search</button>
       <button onclick="clearSearch()">Clear</button>
@@ -193,9 +195,25 @@ function prevPage(){ if (PAGE>0){ PAGE--; listKeys(); } }
 function nextPage(){ if ((PAGE+1)*SIZE < TOTAL){ PAGE++; listKeys(); } }
 document.getElementById('q').addEventListener('change', ()=>{ Q=document.getElementById('q').value.trim(); });
 document.getElementById('projFilter').addEventListener('change', ()=>{ PROJ=document.getElementById('projFilter').value.trim(); });
+document.getElementById('projSelect').addEventListener('change', ()=>{ PROJ=document.getElementById('projSelect').value; PAGE=0; listKeys(); });
 // initial load
 listKeys();
+loadProjectsFilter();
 function delKey(k){ if (!confirm('delete key?')) return; fetch('/api/keys/'+k,{method:'DELETE',headers:{'x-admin-token':TOK}}).then(_=>listKeys()); }
+
+async function loadProjectsFilter(){
+  // fetch up to 1000 projects for filter dropdown
+  const r = await fetch('/api/projects?size=1000',{headers:{'x-admin-token':TOK}});
+  const js = await r.json();
+  const items = js.items || js;
+  const sel = document.getElementById('projSelect');
+  sel.innerHTML = '<option value="">(All)</option>';
+  for (const p of items) {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.id + (p.name?(' - '+p.name):'');
+    sel.appendChild(opt);
+  }
+}
 </script>
 </body>
 </html>

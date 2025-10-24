@@ -6,6 +6,7 @@
 - 创建/更新项目
   - POST /api/projects
   - body: {"id":"p1","name":"Demo"}
+  - 说明：若 id 已存在则更新 name（幂等 upsert）
 - 列出项目
   - GET /api/projects（支持 `q`/`page`/`size` 分页搜索）
 - 生成 API Key
