@@ -4,7 +4,10 @@
 
 ```mermaid
 flowchart LR
-  subgraph Clients[客户端 SDK]
+  %% GitHub Mermaid 兼容写法：subgraph 不使用方括号标题
+
+  subgraph Clients
+    direction LR
     W[Web]
     A[Android]
     U[Unity]
@@ -12,45 +15,55 @@ flowchart LR
     S[Server SDK]
   end
 
-  subgraph Ingest[采集入口 - Spring Boot(WebFlux)]
+  subgraph Ingest
+    direction TB
     GW[Gateway /v1/batch]
-    AUTH[Auth/HMAC/限流]
+    AUTH[Auth / HMAC / 限流]
   end
 
-  subgraph Stream[流处理 - Flink]
-    K[Kafka\n events_raw/enriched/dlq]
-    V[Validate+Dedup+Enrich]
+  subgraph Stream
+    direction TB
+    K[(Kafka)]
+    V[Validate + Dedup + Enrich]
     SS[Sessions]
-    AGG[Retention/Funnels/Cohorts]
+    AGG[Retention / Funnels / Cohorts]
     DLQ[Dead Letter]
   end
 
-  subgraph Storage[存储]
+  subgraph Storage
+    direction TB
     CH[(ClickHouse)]
-    MV[(物化视图/聚合表)]
+    MV[(物化视图 / 聚合表)]
   end
 
-  subgraph Control[控制面 - Spring Boot]
+  subgraph Control
+    direction TB
     API[Control API]
     SR[Schema Registry]
-    CFG[采样/PII/配额]
+    CFG[采样 / PII / 配额]
   end
 
-  subgraph BI[分析]
+  subgraph BI
+    direction TB
     SP[Superset]
     MB[Metabase]
   end
 
-  Clients -->|HTTP NDJSON+gzip| GW --> AUTH -->|Avro| K
-  K --> V -->|events_enriched| K
+  Clients -->|HTTP NDJSON + gzip| GW
+  GW --> AUTH
+  AUTH -->|Avro| K
+  K --> V
+  V -->|events_enriched| K
   V --> DLQ
   V --> CH
-  K --> SS --> CH
+  K --> SS
+  SS --> CH
   SS --> MV
+  K --> AGG
   AGG --> CH
   CH <-->|SQL| SP
   CH <-->|SQL| MB
-  API <-->|keys/schemas/rules| GW
+  API <--> GW
 ```
 
 关键设计
