@@ -71,6 +71,7 @@ ClickHouse 聚合（示例）
 - 曝光：从 events 过滤 `experiment_exposure`，聚合到按日/variant
 - 转化：按曝光用户集合在窗口内统计转化事件（SQL 在 queries_experiment.sql）
  - 维度版视图：已提供包含 `platform/app_version/country` 维度的视图（`v_exp_exposures_by_day_dim`, `v_exp_conversion_24h_dim`, `v_exp_conversion_7d_dim`），可在 Superset 中建对应数据集进行按维度筛选或分组。
+ - 大数据量建议：导入 `schema/sql/clickhouse/schema_experiments_mv.sql` 与 `schema/sql/clickhouse/queries_experiment_mv.sql`，优先查询基于 MV 的 `*_fast` 视图以降低扫描成本。
 
 配置校验
 - 推荐参考 JSON Schema：`schema/json/experiment-config.schema.json`
