@@ -93,6 +93,44 @@
     </div>
   </section>
 
+  <section>
+    <h3>Experiments</h3>
+    <div>
+      <label>Project:</label>
+      <select id="exp_proj"><option value="">(Select project)</option></select>
+      <label>Status:</label>
+      <select id="exp_status">
+        <option value="">(All)</option>
+        <option value="draft">draft</option>
+        <option value="running">running</option>
+        <option value="paused">paused</option>
+      </select>
+      <button onclick="listExperiments()">List</button>
+    </div>
+    <div>
+      <h4>Create/Update</h4>
+      <input id="exp_id" placeholder="id (unique)" />
+      <input id="exp_pid" placeholder="projectId" />
+      <input id="exp_name" placeholder="name" />
+      <input id="exp_salt" placeholder="salt (optional)" />
+      <select id="exp_status_edit">
+        <option value="draft">draft</option>
+        <option value="running">running</option>
+        <option value="paused">paused</option>
+      </select>
+      <br/>
+      <textarea id="exp_config" placeholder='config JSON (variants/targeting/metrics)' rows="6" cols="100">{"variants":[{"name":"A","weight":50},{"name":"B","weight":50}]}</textarea>
+      <br/>
+      <button onclick="upsertExperiment()">Save</button>
+    </div>
+    <div>
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead><tr><th>id</th><th>name</th><th>status</th><th>actions</th></tr></thead>
+        <tbody id="exp_tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
 <script>
 let TOK = localStorage.getItem('pt_admin_token') || '';
 let PAGE = 0, SIZE = 20, TOTAL = 0, Q = '', PROJ = '';
@@ -229,6 +267,59 @@ async function loadProjectsFilter(){
     opt.value = p.id; opt.textContent = p.id + (p.name?(' - '+p.name):'');
     sel.appendChild(opt);
   }
+  // experiments project select
+  const expsel = document.getElementById('exp_proj');
+  if (expsel) {
+    expsel.innerHTML = '<option value="">(Select project)</option>';
+    for (const p of items) {
+      const opt = document.createElement('option'); opt.value=p.id; opt.textContent=p.id; expsel.appendChild(opt);
+    }
+  }
+}
+
+async function listExperiments(){
+  const pid = document.getElementById('exp_proj').value;
+  const st = document.getElementById('exp_status').value;
+  if (!pid) { alert('select project'); return; }
+  const params = new URLSearchParams(); params.set('projectId', pid); if (st) params.set('status', st);
+  const r = await fetch('/api/experiments?'+params.toString(), {headers:{'x-admin-token':TOK}});
+  const js = await r.json();
+  const tb = document.getElementById('exp_tbody'); tb.innerHTML='';
+  for (const e of js) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${e.id}</td><td>${e.name||''}</td><td>${e.status}</td><td>
+      <button onclick=\"expPublish('${'${'}e.id}'}')\">Publish</button>
+      <button onclick=\"expPause('${'${'}e.id}'}')\">Pause</button>
+      <button onclick=\"expDelete('${'${'}e.id}'}')\">Delete</button>
+      <button onclick=\"expLoad('${'${'}e.id}'}','${'${'}e.projectId}'}','${'${'}(e.name||'').replace(/"/g,'&quot;')}','${'${'}(e.salt||'').replace(/"/g,'&quot;')}','${'${'}e.status}'}')\">Edit</button>
+    </td>`;
+    tb.appendChild(tr);
+  }
+}
+
+async function upsertExperiment(){
+  const id = document.getElementById('exp_id').value.trim();
+  const projectId = document.getElementById('exp_pid').value.trim();
+  const name = document.getElementById('exp_name').value.trim();
+  const salt = document.getElementById('exp_salt').value.trim();
+  const status = document.getElementById('exp_status_edit').value;
+  let config={}; try { const txt=document.getElementById('exp_config').value; config = txt?JSON.parse(txt):{}; } catch(e){ alert('invalid config JSON'); return; }
+  if (!id || !projectId) { alert('id/projectId required'); return; }
+  const body = {id, projectId, name, status, salt, config};
+  const r = await fetch('/api/experiments',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify(body)});
+  if (!r.ok) alert('save failed'); else { alert('saved'); listExperiments(); }
+}
+
+async function expPublish(id){ await fetch('/api/experiments/'+id+'/publish',{method:'POST',headers:{'x-admin-token':TOK}}); listExperiments(); }
+async function expPause(id){ await fetch('/api/experiments/'+id+'/pause',{method:'POST',headers:{'x-admin-token':TOK}}); listExperiments(); }
+async function expDelete(id){ if (!confirm('delete experiment?')) return; await fetch('/api/experiments/'+id,{method:'DELETE',headers:{'x-admin-token':TOK}}); listExperiments(); }
+function expLoad(id, projectId, name, salt, status){
+  document.getElementById('exp_id').value = id;
+  document.getElementById('exp_pid').value = projectId;
+  document.getElementById('exp_name').value = name;
+  document.getElementById('exp_salt').value = salt;
+  document.getElementById('exp_status_edit').value = status||'draft';
+  // config remains manual; optionally fetch /api/config for running ones
 }
 
 function toggleAll(cb){ document.querySelectorAll('#keys_tbody input.sel').forEach(x=>x.checked=cb.checked); }
