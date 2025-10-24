@@ -114,8 +114,15 @@ public class EventsEnrichJob {
                 if (c != null) currentCountry = c;
             }
             row.country = nz(currentCountry);
+            // Merge UA parsed info into props_json
             Object pj = record.get("props_json");
-            row.props_json = pj == null ? "{}" : pj.toString();
+            String baseProps = pj == null ? "{}" : pj.toString();
+            String uaFamily = enrichers.uaFamily(userAgent);
+            if (uaFamily != null && !uaFamily.isEmpty()) {
+                row.props_json = mergeProps(baseProps, "ua_family", uaFamily);
+            } else {
+                row.props_json = baseProps;
+            }
             row.revenue_amount = BigDecimal.ZERO; // 表为非 Nullable，使用默认 0
             row.revenue_currency = "USD";
             return row;
@@ -266,6 +273,24 @@ public class EventsEnrichJob {
                 UserAgent parsed = uaa.parse(ua);
                 return parsed.getValue("AgentName");
             } catch (Exception e) { return null; }
+        }
+    }
+
+    // Merge a single string key/value into existing JSON object string; fall back to concat if invalid
+    private static String mergeProps(String json, String key, String value) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode node = om.readTree(json);
+            if (!node.isObject()) return json; // keep original if not object
+            com.fasterxml.jackson.databind.node.ObjectNode obj = (com.fasterxml.jackson.databind.node.ObjectNode) node;
+            if (!obj.has(key)) obj.put(key, value);
+            return om.writeValueAsString(obj);
+        } catch (Exception e) {
+            // naive fallback
+            if (json == null || json.isEmpty() || json.equals("{}")) {
+                return "{\""+key+"\":\""+value.replace("\"","\\\"")+"\"}";
+            }
+            return json;
         }
     }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.playtics.common.model.Event;
 import io.playtics.gateway.kafka.AvroPublisher;
 import io.playtics.gateway.kafka.DlqPublisher;
+import io.playtics.gateway.config.PropsPolicy;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -22,7 +23,8 @@ public class BatchController {
     private final ObjectMapper om;
     private final AvroPublisher publisher;
     private final DlqPublisher dlq;
-    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq) { this.om = om; this.publisher = publisher; this.dlq = dlq; }
+    private final PropsPolicy propsPolicy;
+    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; }
 
     public static class BatchResponse {
         public List<String> accepted = new CopyOnWriteArrayList<>();
@@ -37,6 +39,10 @@ public class BatchController {
                                      @RequestBody Mono<byte[]> bodyBytesMono) {
         return bodyBytesMono.map(bytes -> {
             byte[] raw = maybeGunzip(bytes, encoding);
+            if (propsPolicy.exceedsRequestLimit(raw)) {
+                // 大包直接 413
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE, "request_too_large");
+            }
             List<Event> events = parseEvents(raw, contentType);
             String userAgent = req.getHeaders().getFirst("user-agent");
             String xff = req.getHeaders().getFirst("x-forwarded-for");
@@ -59,6 +65,17 @@ public class BatchController {
                 // enrich request-derived fields
                 if (e.userAgent == null) e.userAgent = userAgent;
                 if (e.clientIp == null) e.clientIp = clientIp;
+                // props allowlist & depth clamp
+                if (e.props != null) e.props = propsPolicy.filter(e.props);
+                // size check per event
+                if (propsPolicy.exceedsEventLimit(e)) {
+                    HashMap<String, String> rej = new HashMap<>();
+                    rej.put("event_id", e.eventId);
+                    rej.put("reason", "payload_too_large");
+                    resp.rejected.add(rej);
+                    dlq.publish(e.eventId, "payload_too_large", toJsonSilently(e));
+                    continue;
+                }
                 try { publisher.publish(e); resp.accepted.add(e.eventId); }
                 catch (Exception ex) {
                     HashMap<String, String> rej = new HashMap<>();

@@ -19,3 +19,9 @@ playtics:
       pk_test_example: sk_test_secret
   ratelimit:
     rpm: 600
+  props:
+    allowlist: []   # 示例: [level,stars,amount,currency,exp,variant]
+  event:
+    maxBytes: 65536
+  request:
+    maxBytes: 1048576

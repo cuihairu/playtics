@@ -7,6 +7,9 @@ Headers
 - `x-signature`: 可选，`HMAC-SHA256` 对请求体签名（推荐）
 - `content-type`: `application/json`（数组）或 `application/x-ndjson`
 - `content-encoding`: `gzip`（推荐）
+限制
+- 请求体（解压后）≤ 1MB（可配 `playtics.request.maxBytes`）
+- 单事件序列化后 ≤ 64KB（可配 `playtics.event.maxBytes`）
 
 请求体
 - JSON 数组或 NDJSON（每行一个 JSON 事件）。
@@ -32,6 +35,7 @@ Headers
 校验与治理
 - Schema 版本由控制面管理，网关按 JSON Schema 快速校验（长度、大小、类型）。
 - PII 策略：配置白/黑名单键名；不合规字段丢弃或掩码；严重违规进入 DLQ。
+- Props 白名单：`playtics.props.allowlist` 控制允许的自定义字段；多余字段被丢弃，嵌套层级最多 3 层，数组最多 50 项。
 
 签名规范（可选）
 - `x-signature: t=TIMESTAMP, s=hex(hmacSha256(secret, t + '.' + body)))`

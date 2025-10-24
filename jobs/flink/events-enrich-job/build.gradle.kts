@@ -12,6 +12,7 @@ dependencies {
   implementation("com.clickhouse:clickhouse-jdbc:0.6.8")
   implementation("com.maxmind.geoip2:geoip2:4.2.0")
   implementation("nl.basjes.parse.useragent:yauaa:7.24")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
 }
 
 tasks.withType<JavaCompile> { options.release.set(21) }
