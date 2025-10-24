@@ -73,5 +73,15 @@ else
   echo "[5/6] Flink CLI not found; skipping CH verification"
 fi
 
+# 5b) Apply ClickHouse experiment MVs and fast views (idempotent)
+echo "[5b] Applying ClickHouse experiment MVs and fast views"
+if curl -fsS "http://localhost:8123/?query=SELECT%201" >/dev/null 2>&1; then
+  curl -fsS --data-binary @schema/sql/clickhouse/schema_experiments_mv.sql "http://localhost:8123/?query=\n" >/dev/null || true
+  curl -fsS --data-binary @schema/sql/clickhouse/queries_experiment_mv.sql "http://localhost:8123/?query=\n" >/dev/null || true
+  echo "Applied experiment MVs and fast views."
+else
+  echo "ClickHouse HTTP not reachable; skip applying MVs"
+fi
+
 echo "[6/6] Done. PIDs: control=$CTRL_PID gateway=$GW_PID (CTRL-C to stop)"
 wait $CTRL_PID $GW_PID || true
