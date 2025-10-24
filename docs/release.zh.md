@@ -70,3 +70,10 @@ helm upgrade --install playtics ./infra/helm/playtics -n playtics --create-names
 - docs/deploy.k8s.zh.md（K8s 部署）
 - docs/perf-tuning.zh.md（性能调优）
 - docs/e2e.zh.md（端到端脚本）
+
+GitHub Release
+- 打 tag（自动触发发布）：
+```bash
+bash scripts/release_tag.sh 0.1.0
+```
+- GitHub Actions 会自动创建 Release，正文取 `docs/release-notes/<tag>.md`（若存在）或 `CHANGELOG.md`，并附带 Superset 仪表盘包 zip 为附件。

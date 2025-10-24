@@ -1,0 +1,14 @@
+changelog:
+  categories:
+    - title: Features
+      labels: ["feat", "feature"]
+    - title: Fixes
+      labels: ["fix", "bugfix", "bug"]
+    - title: Tests
+      labels: ["test", "tests"]
+    - title: Docs
+      labels: ["docs", "documentation"]
+    - title: Chore/Build/CI
+      labels: ["chore", "build", "ci"]
+  exclude:
+    labels: ["skip-changelog"]
