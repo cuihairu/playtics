@@ -244,3 +244,43 @@ export class Playtics {
 
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 function jitter(n: number) { return Math.floor(Math.random() * n); }
+
+// ===== Experiments (A/B) helpers =====
+export type Variant = { name: string; weight: number };
+export type ExperimentCfg = { id: string; salt?: string; config?: { variants?: Variant[]; targeting?: any } };
+
+// Simple FNV-1a 32-bit hash
+export function hash32(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i=0;i<s.length;i++) { h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+  return (h>>>0);
+}
+
+export function assignVariant(exp: { id: string; salt?: string; variants: Variant[] }, key: string): string {
+  const vars = exp.variants || [];
+  if (!vars.length) return 'A';
+  const sum = vars.reduce((a,v)=>a+(v.weight||0), 0) || vars.length;
+  const h = hash32(exp.id+':'+(exp.salt||'')+':'+key) % sum;
+  let acc = 0; for (const v of vars) { acc += (v.weight||0)||1; if (h < acc) return v.name; }
+  return vars[0].name;
+}
+
+export async function fetchExperiments(controlEndpoint: string, projectId: string): Promise<ExperimentCfg[]> {
+  const url = controlEndpoint.replace(/\/$/,'') + `/api/config/${encodeURIComponent(projectId)}`;
+  const r = await fetch(url, { headers: { 'accept': 'application/json' } });
+  if (!r.ok) throw new Error('fetch experiments failed: '+r.status);
+  return r.json();
+}
+
+export async function assignAllAndExpose(pt: Playtics, exps: ExperimentCfg[], userKey: string, platform?: string, appVersion?: string): Promise<Record<string,string>> {
+  const res: Record<string,string> = {};
+  for (const e of exps) {
+    const cfg = e.config || {};
+    const vars = (cfg.variants as Variant[]) || [];
+    // TODO: apply targeting if provided (platform/appVersion/country etc.)
+    const v = assignVariant({ id: e.id, salt: e.salt, variants: vars }, userKey);
+    res[e.id] = v;
+    pt.expose(e.id, v);
+  }
+  return res;
+}

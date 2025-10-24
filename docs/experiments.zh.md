@@ -32,6 +32,30 @@ function assign(exp: {id:string,salt:string,variants:{name:string,weight:number}
 playtics.expose(exp.id, variant);
 ```
 
+SDK 使用示例
+- Web (TS)
+```ts
+import { fetchExperiments, assignAllAndExpose } from './dist/index.js';
+const exps = await fetchExperiments('http://localhost:8085', 'p1');
+const assignments = await assignAllAndExpose(pt, exps, userId || deviceId);
+```
+- Android (Kotlin)
+```kotlin
+val raw = pt.fetchExperiments("http://10.0.2.2:8085", "p1") // returns JSON string
+// parse and call pt.assignVariant(expId, salt, listOf(Variant("A",50), Variant("B",50)), userKey)
+```
+- iOS (Swift)
+```swift
+Playtics.shared.fetchExperiments(URL(string:"http://localhost:8085")!, projectId:"p1") { result in
+  if case .success(let data) = result { /* decode and assign via Playtics.assignVariant */ }
+}
+```
+- Unity (C#)
+```csharp
+var variant = Playtics.Playtics.AssignVariant("exp1", "salt", new List<Tuple<string,int>>{ Tuple.Create("A",50), Tuple.Create("B",50) }, userKey);
+Playtics.Playtics.Track("experiment_exposure", new Dictionary<string,object>{{"exp","exp1"},{"variant",variant}});
+```
+
 事件规范
 - 曝光：`experiment_exposure`，props: { exp: <id>, variant: <name> }
 - 转化事件：按业务上报，如 `level_complete` / `purchase`

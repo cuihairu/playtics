@@ -292,4 +292,28 @@ class Playtics(private val ctx: Context, private val opts: Options) {
     val hex = ts + rnd.take(20)
     return hex.substring(0,8) + "-" + hex.substring(8,12) + "-7" + hex.substring(13,16) + "-" + hex.substring(16,20) + "-" + hex.substring(20,32)
   }
+
+  // ===== Experiments helpers =====
+  data class Variant(val name: String, val weight: Int)
+  private fun hash32(s: String): Int {
+    var h = 0x811c9dc5.toInt()
+    for (ch in s) { h = h xor ch.code; h += (h shl 1) + (h shl 4) + (h shl 7) + (h shl 8) + (h shl 24) }
+    return h ushr 0
+  }
+  fun assignVariant(expId: String, salt: String?, variants: List<Variant>, key: String): String {
+    if (variants.isEmpty()) return "A"
+    val sum = variants.sumOf { if (it.weight>0) it.weight else 1 }
+    val h = (hash32("$expId:${salt?:("")}:$key") % sum + sum) % sum
+    var acc = 0
+    for (v in variants) { acc += if (v.weight>0) v.weight else 1; if (h < acc) return v.name }
+    return variants[0].name
+  }
+  /** Fetch experiments config (running) from control-service. WARNING: network on caller thread. */
+  fun fetchExperiments(controlEndpoint: String, projectId: String): String? {
+    return try {
+      val url = controlEndpoint.trimEnd('/') + "/api/config/" + projectId
+      val req = okhttp3.Request.Builder().url(url).get().build()
+      client.newCall(req).execute().use { resp -> if (resp.isSuccessful) resp.body?.string() else null }
+    } catch (_: Throwable) { null }
+  }
 }

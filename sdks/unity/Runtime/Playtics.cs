@@ -389,5 +389,22 @@ namespace Playtics
         }
 
         private static void LogDebug(string msg) { Debug.Log("[Playtics] " + msg); }
+
+        // ===== Experiments helpers =====
+        public static string AssignVariant(string expId, string salt, System.Collections.Generic.List<System.Tuple<string,int>> variants, string key)
+        {
+            if (variants == null || variants.Count == 0) return "A";
+            int sum = 0; foreach (var v in variants) sum += v.Item2 > 0 ? v.Item2 : 1;
+            uint h = Hash32(expId+":"+(salt??"")+":"+key);
+            int r = (int)(h % (uint)sum);
+            int acc = 0; foreach (var v in variants) { acc += v.Item2>0?v.Item2:1; if (r < acc) return v.Item1; }
+            return variants[0].Item1;
+        }
+        private static uint Hash32(string s)
+        {
+            uint h = 0x811c9dc5;
+            foreach (char ch in s) { h ^= (uint)ch; h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+            return h;
+        }
     }
 }

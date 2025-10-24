@@ -278,6 +278,29 @@ public final class Playtics {
             return "[" + out.joined(separator: ",") + "]"
         }
     }
+
+    // ===== Experiments helpers =====
+    private static func hash32(_ s: String) -> UInt32 {
+        var h: UInt32 = 0x811c9dc5
+        for b in s.utf8 { h ^= UInt32(b); h &+= (h<<1) &+ (h<<4) &+ (h<<7) &+ (h<<8) &+ (h<<24) }
+        return h
+    }
+    public static func assignVariant(expId: String, salt: String?, variants: [(name:String, weight:Int)], key: String) -> String {
+        if variants.isEmpty { return "A" }
+        let sum = max(1, variants.reduce(0) { $0 + max(1,$1.weight) })
+        let h = Int(hash32("\(expId):\(salt ?? ""):\(key)") % UInt32(sum))
+        var acc = 0
+        for v in variants { acc += max(1,v.weight); if h < acc { return v.name } }
+        return variants[0].name
+    }
+    public func fetchExperiments(controlURL: URL, projectId: String, completion: @escaping (Result<Data,Error>)->Void) {
+        var u = controlURL; u.appendPathComponent("api/config/\(projectId)")
+        var req = URLRequest(url: u); req.httpMethod = "GET"; req.setValue("application/json", forHTTPHeaderField: "accept")
+        URLSession.shared.dataTask(with: req) { data, resp, err in
+            if let e = err { completion(.failure(e)); return }
+            completion(.success(data ?? Data()))
+        }.resume()
+    }
 }
 
 fileprivate extension String {
