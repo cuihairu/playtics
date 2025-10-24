@@ -6,6 +6,8 @@ receivers:
 exporters:
   logging:
     loglevel: info
+  prometheus:
+    endpoint: 0.0.0.0:9464
 service:
   pipelines:
     traces:
@@ -13,7 +15,7 @@ service:
       exporters: [logging]
     metrics:
       receivers: [otlp]
-      exporters: [logging]
+      exporters: [logging, prometheus]
     logs:
       receivers: [otlp]
       exporters: [logging]
