@@ -19,10 +19,10 @@ import java.util.zip.GZIPInputStream;
 @RequestMapping("/v1")
 public class BatchController {
 
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om;
     private final AvroPublisher publisher;
     private final DlqPublisher dlq;
-    public BatchController(AvroPublisher publisher, DlqPublisher dlq) { this.publisher = publisher; this.dlq = dlq; }
+    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq) { this.om = om; this.publisher = publisher; this.dlq = dlq; }
 
     public static class BatchResponse {
         public List<String> accepted = new CopyOnWriteArrayList<>();

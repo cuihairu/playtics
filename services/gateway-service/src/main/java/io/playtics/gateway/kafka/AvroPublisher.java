@@ -10,6 +10,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
@@ -33,6 +34,9 @@ public class AvroPublisher {
 
     private KafkaProducer<String, Object> producer;
     private Schema schema;
+    private final ObjectMapper om;
+
+    public AvroPublisher(ObjectMapper om) { this.om = om; }
 
     @PostConstruct
     public void init() throws Exception {
@@ -71,7 +75,11 @@ public class AvroPublisher {
         gr.put("country", e.country);
         gr.put("revenue_amount", null);
         gr.put("revenue_currency", null);
-        gr.put("props_json", e.props == null ? null : e.props.toString());
+        try {
+            gr.put("props_json", e.props == null ? "{}" : om.writeValueAsString(e.props));
+        } catch (Exception ex) {
+            gr.put("props_json", "{}");
+        }
         return producer.send(new ProducerRecord<>(topic, e.projectId, gr));
     }
 }
