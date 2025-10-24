@@ -50,15 +50,27 @@
   </section>
   <section>
     <h3>Keys</h3>
-    <button onclick="listKeys()">Refresh</button>
+    <div>
+      <input id="q" placeholder="search apiKey/name" />
+      <input id="projFilter" placeholder="projectId filter" />
+      <input id="pageSize" placeholder="size" value="20" size="4" />
+      <button onclick="listKeys(0)">Search</button>
+      <button onclick="clearSearch()">Clear</button>
+    </div>
     <table border="1" cellpadding="6" cellspacing="0">
       <thead><tr><th>apiKey</th><th>secret</th><th>projectId</th><th>rpm</th><th>ipRpm</th><th>actions</th></tr></thead>
       <tbody id="keys_tbody"></tbody>
     </table>
+    <div>
+      <button onclick="prevPage()">Prev</button>
+      <span id="page_info"></span>
+      <button onclick="nextPage()">Next</button>
+    </div>
   </section>
 
 <script>
 let TOK = localStorage.getItem('pt_admin_token') || '';
+let PAGE = 0, SIZE = 20, TOTAL = 0, Q = '', PROJ = '';
 document.getElementById('admintok').value = TOK;
 function saveTok(){ TOK = document.getElementById('admintok').value.trim(); localStorage.setItem('pt_admin_token', TOK); alert('saved'); }
 async function createProject(){
@@ -92,9 +104,14 @@ async function listProjects(){
   const r = await fetch('/api/projects',{headers:{'x-admin-token':TOK}}); document.getElementById('out_proj').textContent = JSON.stringify(await r.json(),null,2);
 }
 async function listKeys(){
-  const r = await fetch('/api/keys',{headers:{'x-admin-token':TOK}}); const js = await r.json();
+  SIZE = parseInt(document.getElementById('pageSize').value||'20'); if (isNaN(SIZE)||SIZE<1) SIZE=20;
+  const params = new URLSearchParams(); params.set('page', PAGE); params.set('size', SIZE);
+  if (Q) params.set('q', Q); if (PROJ) params.set('projectId', PROJ);
+  const r = await fetch('/api/keys?'+params.toString(),{headers:{'x-admin-token':TOK}});
+  const js = await r.json();
+  const items = js.items || js; TOTAL = js.total || items.length;
   const tb = document.getElementById('keys_tbody'); tb.innerHTML = '';
-  for (const k of js) {
+  for (const k of items) {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><code>${k.apiKey}</code></td>
                     <td><code>${k.secret||''}</code></td>
@@ -105,9 +122,12 @@ async function listKeys(){
                       <button onclick="copy('${'${'}k.apiKey}')} ">Copy Key</button>
                       <button onclick="copy('${'${'}k.secret||''}')} ">Copy Secret</button>
                       <button onclick="document.getElementById('k_api').value='${'${'}k.apiKey}'}'; prefillPolicy();">Edit</button>
+                      <button onclick="delKey('${'${'}k.apiKey}'}')">Delete</button>
                     </td>`;
     tb.appendChild(tr);
   }
+  const start = PAGE*SIZE+1, end = Math.min((PAGE+1)*SIZE, TOTAL);
+  document.getElementById('page_info').textContent = `Page ${PAGE+1}, showing ${start}-${end} of ${TOTAL}`;
 }
 function toList(s){ s=s.trim(); if(!s) return null; return s.split(',').map(x=>x.trim()).filter(Boolean); }
 function strOrNull(s){ s=s.trim(); return s||null; }
@@ -127,6 +147,14 @@ async function prefillPolicy(){
   document.getElementById('denyKeys').value = (k.denyKeys||[]).join(',');
   document.getElementById('maskKeys').value = (k.maskKeys||[]).join(',');
 }
+function clearSearch(){ document.getElementById('q').value=''; document.getElementById('projFilter').value=''; Q=''; PROJ=''; PAGE=0; listKeys(); }
+function prevPage(){ if (PAGE>0){ PAGE--; listKeys(); } }
+function nextPage(){ if ((PAGE+1)*SIZE < TOTAL){ PAGE++; listKeys(); } }
+document.getElementById('q').addEventListener('change', ()=>{ Q=document.getElementById('q').value.trim(); });
+document.getElementById('projFilter').addEventListener('change', ()=>{ PROJ=document.getElementById('projFilter').value.trim(); });
+// initial load
+listKeys();
+function delKey(k){ if (!confirm('delete key?')) return; fetch('/api/keys/'+k,{method:'DELETE',headers:{'x-admin-token':TOK}}).then(_=>listKeys()); }
 </script>
 </body>
 </html>

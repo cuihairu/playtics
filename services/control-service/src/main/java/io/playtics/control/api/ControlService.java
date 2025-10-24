@@ -40,6 +40,32 @@ public class ControlService {
         return keyRepo.findAll().stream().map(this::toResp).collect(Collectors.toList());
     }
 
+    public Paged<Models.KeyDetailResp> searchKeys(String projectId, String q, int page, int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("apiKey").ascending());
+        var pg = keyRepo.search(emptyToNull(projectId), emptyToNull(q), pageable);
+        var items = pg.getContent().stream().map(this::toResp).collect(Collectors.toList());
+        return new Paged<>(items, pg.getTotalElements());
+    }
+
+    public boolean deleteKey(String apiKey) {
+        if (!keyRepo.existsById(apiKey)) return false;
+        keyRepo.deleteById(apiKey);
+        return true;
+    }
+
+    public long deleteProject(String projectId) {
+        long n = keyRepo.deleteByProjectId(projectId);
+        projectRepo.deleteById(projectId);
+        return n;
+    }
+
+    private static String emptyToNull(String s) { return (s==null||s.isBlank())?null:s; }
+
+    public static class Paged<T> {
+        public java.util.List<T> items; public long total;
+        public Paged(java.util.List<T> items, long total){ this.items=items; this.total=total; }
+    }
+
     public Models.KeyDetailResp updatePolicy(String apiKey, Models.KeyDetailResp req) {
         return keyRepo.findById(apiKey).map(e -> {
             if (req.rpm != null) e.rpm = req.rpm;

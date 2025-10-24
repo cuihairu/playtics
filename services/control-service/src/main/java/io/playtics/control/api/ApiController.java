@@ -36,8 +36,16 @@ public class ApiController {
     }
 
     @GetMapping("/keys")
-    public List<Models.KeyDetailResp> listKeys() {
-        return svc.listKeys();
+    public Object listKeys(@RequestParam(value = "q", required = false) String q,
+                           @RequestParam(value = "projectId", required = false) String projectId,
+                           @RequestParam(value = "page", required = false) Integer page,
+                           @RequestParam(value = "size", required = false) Integer size) {
+        if (page == null && size == null && (q == null && projectId == null)) {
+            return svc.listKeys();
+        }
+        int p = page == null ? 0 : Math.max(0, page);
+        int s = size == null ? 50 : Math.max(1, size);
+        return svc.searchKeys(projectId, q, p, s);
     }
 
     public static class UpdatePolicyReq {
@@ -53,5 +61,17 @@ public class ApiController {
         var out = svc.updatePolicy(apiKey, r);
         if (out == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(out);
+    }
+
+    @DeleteMapping("/keys/{apiKey}")
+    public ResponseEntity<Map<String,Object>> deleteKey(@PathVariable String apiKey) {
+        boolean ok = svc.deleteKey(apiKey);
+        return ok ? ResponseEntity.ok(Map.of("deleted", true)) : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/projects/{projectId}")
+    public ResponseEntity<Map<String,Object>> deleteProject(@PathVariable String projectId) {
+        long n = svc.deleteProject(projectId);
+        return ResponseEntity.ok(Map.of("deleted","project","keys_deleted", n));
     }
 }
