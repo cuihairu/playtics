@@ -46,6 +46,8 @@ Headers
 - Schema 版本由控制面管理，网关按 JSON Schema 快速校验（长度、大小、类型）。
 - PII 策略：配置白/黑名单键名；不合规字段丢弃或掩码；严重违规进入 DLQ。
 - Props 白名单：`playtics.props.allowlist` 控制允许的自定义字段；多余字段被丢弃，嵌套层级最多 3 层，数组最多 50 项。
+ - PII 细则：`playtics.pii.email/phone/ip` 可设为 `allow|mask|drop`；默认 email/phone 掩码、IP 做粗化（IPv4 /24, IPv6 /48）。
+ - PII 阻断：`playtics.pii.denyKeys` 中的键名出现时事件将被拒绝（`pii_blocked`）并写入 DLQ。
 
 签名规范（可选）
 - `x-signature: t=TIMESTAMP, s=hex(hmacSha256(secret, t + '.' + body)))`

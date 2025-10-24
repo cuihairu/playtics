@@ -28,3 +28,9 @@ playtics:
     maxBytes: 65536
   request:
     maxBytes: 1048576
+  pii:
+    email: mask      # mask|drop|allow
+    phone: mask      # mask|drop|allow
+    ip: coarse       # coarse|drop|allow  (coarse: IPv4 /24, IPv6 /48)
+    denyKeys: [password, pass, passwd, credit_card, ssn]
+    maskKeys: [email, phone, mobile]

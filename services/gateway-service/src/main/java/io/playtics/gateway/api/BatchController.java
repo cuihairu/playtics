@@ -8,6 +8,7 @@ import io.playtics.gateway.kafka.DlqPublisher;
 import io.playtics.gateway.config.PropsPolicy;
 import io.playtics.gateway.config.JsonSchemaValidator;
 import io.playtics.gateway.config.PolicyService;
+import io.playtics.gateway.config.PiiPolicy;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -28,7 +29,8 @@ public class BatchController {
     private final PropsPolicy propsPolicy;
     private final JsonSchemaValidator schemaValidator;
     private final PolicyService policyService;
-    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy, JsonSchemaValidator schemaValidator, PolicyService policyService) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; this.schemaValidator = schemaValidator; this.policyService = policyService; }
+    private final PiiPolicy piiPolicy;
+    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy, JsonSchemaValidator schemaValidator, PolicyService policyService, PiiPolicy piiPolicy) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; this.schemaValidator = schemaValidator; this.policyService = policyService; this.piiPolicy = piiPolicy; }
 
     public static class BatchResponse {
         public List<String> accepted = new CopyOnWriteArrayList<>();
@@ -78,6 +80,24 @@ public class BatchController {
                     } else {
                         e.props = propsPolicy.filter(e.props);
                     }
+                }
+                // PII: block keys
+                if (e.props != null && piiPolicy.hasBlockedKeys(e.props)) {
+                    HashMap<String, String> rej = new HashMap<>();
+                    rej.put("event_id", e.eventId);
+                    rej.put("reason", "pii_blocked");
+                    resp.rejected.add(rej);
+                    dlq.publish(e.eventId, "pii_blocked", toJsonSilently(e));
+                    continue;
+                }
+                // PII: sanitize props and client_ip, user_id
+                if (e.props != null) e.props = piiPolicy.sanitizeProps(e.props);
+                e.clientIp = piiPolicy.sanitizeClientIp(e.clientIp);
+                if (e.userId != null) {
+                    Map<String,Object> tmp = new java.util.HashMap<>(); tmp.put("user_id", e.userId);
+                    tmp = piiPolicy.sanitizeProps(tmp);
+                    Object v = tmp.get("user_id");
+                    if (v == null) e.userId = null; else e.userId = String.valueOf(v);
                 }
                 // size check per event
                 if (propsPolicy.exceedsEventLimit(e)) {
