@@ -14,5 +14,9 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-        jdbc:
-          time_zone: UTC
+      jdbc:
+        time_zone: UTC
+
+playtics:
+  admin:
+    token: admin   # 简易开发用管理令牌，生产请改为强密码或接入企业认证

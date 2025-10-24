@@ -13,6 +13,11 @@
 <body>
   <h2>Playtics Control</h2>
   <section>
+    <h3>Admin Token</h3>
+    <input id="admintok" placeholder="x-admin-token (默认 admin)" />
+    <button onclick="saveTok()">Save</button>
+  </section>
+  <section>
     <h3>Create/Update Project</h3>
     <input id="pid" placeholder="project id" />
     <input id="pname" placeholder="project name" />
@@ -27,6 +32,7 @@
   <section>
     <h3>Update Policy</h3>
     <input id="k_api" placeholder="api key" />
+    <button onclick="prefillPolicy()">Load</button>
     <input id="rpm" placeholder="rpm (per key)" />
     <input id="ipRpm" placeholder="ipRpm (per IP)" />
     <input id="allowlist" placeholder="propsAllowlist, comma separated" size="60" />
@@ -45,20 +51,26 @@
   <section>
     <h3>Keys</h3>
     <button onclick="listKeys()">Refresh</button>
-    <pre id="out_keys"></pre>
+    <table border="1" cellpadding="6" cellspacing="0">
+      <thead><tr><th>apiKey</th><th>secret</th><th>projectId</th><th>rpm</th><th>ipRpm</th><th>actions</th></tr></thead>
+      <tbody id="keys_tbody"></tbody>
+    </table>
   </section>
 
 <script>
+let TOK = localStorage.getItem('pt_admin_token') || '';
+document.getElementById('admintok').value = TOK;
+function saveTok(){ TOK = document.getElementById('admintok').value.trim(); localStorage.setItem('pt_admin_token', TOK); alert('saved'); }
 async function createProject(){
   const id = document.getElementById('pid').value.trim();
   const name = document.getElementById('pname').value.trim();
-  const r = await fetch('/api/projects',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id,name})});
+  const r = await fetch('/api/projects',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify({id,name})});
   alert('Saved '+r.status);
 }
 async function createKey(){
   const projectId = document.getElementById('kpid').value.trim();
   const name = document.getElementById('kname').value.trim();
-  const r = await fetch('/api/keys',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projectId,name})});
+  const r = await fetch('/api/keys',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify({projectId,name})});
   const js = await r.json();
   alert('apiKey='+js.apiKey+'\nsecret='+js.secret);
 }
@@ -73,18 +85,48 @@ async function updatePolicy(){
   const denyKeys = toList(document.getElementById('denyKeys').value);
   const maskKeys = toList(document.getElementById('maskKeys').value);
   const body = {rpm, ipRpm, propsAllowlist: allowlist, piiEmail, piiPhone, piiIp, denyKeys, maskKeys};
-  const r = await fetch('/api/keys/'+apiKey+'/policy',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  const r = await fetch('/api/keys/'+apiKey+'/policy',{method:'PUT',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify(body)});
   alert('Update '+r.status);
 }
 async function listProjects(){
-  const r = await fetch('/api/projects'); document.getElementById('out_proj').textContent = JSON.stringify(await r.json(),null,2);
+  const r = await fetch('/api/projects',{headers:{'x-admin-token':TOK}}); document.getElementById('out_proj').textContent = JSON.stringify(await r.json(),null,2);
 }
 async function listKeys(){
-  const r = await fetch('/api/keys'); document.getElementById('out_keys').textContent = JSON.stringify(await r.json(),null,2);
+  const r = await fetch('/api/keys',{headers:{'x-admin-token':TOK}}); const js = await r.json();
+  const tb = document.getElementById('keys_tbody'); tb.innerHTML = '';
+  for (const k of js) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><code>${k.apiKey}</code></td>
+                    <td><code>${k.secret||''}</code></td>
+                    <td>${k.projectId||''}</td>
+                    <td>${k.rpm||''}</td>
+                    <td>${k.ipRpm||''}</td>
+                    <td>
+                      <button onclick="copy('${'${'}k.apiKey}')} ">Copy Key</button>
+                      <button onclick="copy('${'${'}k.secret||''}')} ">Copy Secret</button>
+                      <button onclick="document.getElementById('k_api').value='${'${'}k.apiKey}'}'; prefillPolicy();">Edit</button>
+                    </td>`;
+    tb.appendChild(tr);
+  }
 }
 function toList(s){ s=s.trim(); if(!s) return null; return s.split(',').map(x=>x.trim()).filter(Boolean); }
 function strOrNull(s){ s=s.trim(); return s||null; }
 function toInt(s){ s=s.trim(); return s?parseInt(s):null; }
+function copy(txt){ navigator.clipboard.writeText(txt); alert('copied'); }
+async function prefillPolicy(){
+  const apiKey = document.getElementById('k_api').value.trim(); if (!apiKey) return alert('set api key');
+  const r = await fetch('/api/keys/'+apiKey,{headers:{'x-admin-token':TOK}});
+  if (!r.ok) return alert('not found');
+  const k = await r.json();
+  document.getElementById('rpm').value = k.rpm||'';
+  document.getElementById('ipRpm').value = k.ipRpm||'';
+  document.getElementById('allowlist').value = (k.propsAllowlist||[]).join(',');
+  document.getElementById('piiEmail').value = k.piiEmail||'';
+  document.getElementById('piiPhone').value = k.piiPhone||'';
+  document.getElementById('piiIp').value = k.piiIp||'';
+  document.getElementById('denyKeys').value = (k.denyKeys||[]).join(',');
+  document.getElementById('maskKeys').value = (k.maskKeys||[]).join(',');
+}
 </script>
 </body>
 </html>
