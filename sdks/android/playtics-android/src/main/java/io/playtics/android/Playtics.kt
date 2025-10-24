@@ -316,4 +316,60 @@ class Playtics(private val ctx: Context, private val opts: Options) {
       client.newCall(req).execute().use { resp -> if (resp.isSuccessful) resp.body?.string() else null }
     } catch (_: Throwable) { null }
   }
+
+  // ===== Experiments cache & auto refresh =====
+  private fun expsKey(pid: String) = "pt_experiments_" + pid
+
+  /** Return cached experiments JSON if available, else null. */
+  fun getCachedExperiments(projectId: String = opts.projectId): String? {
+    return try {
+      val raw = prefs.getString(expsKey(projectId), null) ?: return null
+      val parts = raw.split('
+', limit = 2)
+      if (parts.size == 2) parts[1] else null
+    } catch (_: Throwable) { null }
+  }
+
+  /** Fetch experiments with TTL cache. Returns JSON (string) or null. */
+  fun fetchExperimentsCached(controlEndpoint: String, projectId: String = opts.projectId, ttlMs: Long = 300_000): String? {
+    val now = System.currentTimeMillis()
+    try {
+      val raw = prefs.getString(expsKey(projectId), null)
+      if (raw != null) {
+        val parts = raw.split('
+', limit = 2)
+        if (parts.size == 2) {
+          val ts = parts[0].toLongOrNull() ?: 0L
+          val js = parts[1]
+          if (now - ts < ttlMs) {
+            // background refresh
+            Thread { fetchAndStore(controlEndpoint, projectId) }.start()
+            return js
+          }
+        }
+      }
+    } catch (_: Throwable) {}
+    val js = fetchExperiments(controlEndpoint, projectId)
+    if (js != null) prefs.edit().putString(expsKey(projectId), f"{now}
+{js}").apply()
+    return js
+  }
+
+  /** Start a background timer to refresh experiments and invoke callback with latest JSON. Returns a cancel function. */
+  fun startExperimentsAutoRefresh(controlEndpoint: String, projectId: String = opts.projectId, intervalMs: Long = 300_000, onUpdate: (String)->Unit): ()->Unit {
+    val t = Timer(true)
+    val task = object: TimerTask() {
+      override fun run() { fetchAndStore(controlEndpoint, projectId)?.let { onUpdate(it) } }
+    }
+    t.schedule(task, 0L, intervalMs)
+    return { try { t.cancel() } catch (_: Throwable) {} }
+  }
+
+  private fun fetchAndStore(controlEndpoint: String, projectId: String): String? {
+    val js = fetchExperiments(controlEndpoint, projectId)
+    if (js != null) prefs.edit().putString(expsKey(projectId), System.currentTimeMillis().toString() + "
+" + js).apply()
+    return js
+  }
+
 }
