@@ -104,3 +104,19 @@ SLA/容量（示例）
 演进
 - 首期：events-enrich + sessions + 常用 MV（留存/DAU/漏斗）
 - 二期：实验平台/特征库、Streaming Join、回溯重算管道
+
+## 常见问题
+
+为什么有了 Kafka 还需要 Flink？
+- Kafka 是消息队列/日志，不做有状态计算；Flink 负责去重（event_id/状态TTL）、会话切分、窗口聚合、乱序/迟到数据处理、流表 Join、Exactly-once 端到端语义。
+- 仅用 ClickHouse 物化视图可覆盖部分聚合，但对乱序/迟到与复杂状态计算（会话/漏斗）成本更高，且难以做到精确一次。
+- 结论：Kafka 负责可靠传递与回压；Flink 负责实时有状态计算；ClickHouse 负责查询与长期存储。
+
+Schema Registry 选型：Apicurio vs Confluent
+- 推荐 Apicurio（开源、自管轻量，支持 Avro/JSON Schema/Protobuf）。当前仓库已接入：
+  - Gateway 生产端：`io.apicurio.registry.serde.avro.AvroKafkaSerializer`
+  - Flink 消费端：`jobs/flink/events-enrich-job/.../ApicurioAvroFlinkDeserializer.java`
+- 如已使用 Confluent 生态，也可切换：
+  - 生产端改为 `io.confluent.kafka.serializers.KafkaAvroSerializer`
+  - 消费端改为 Confluent 反序列化器；同时调整 subject 命名策略与兼容性级别
+- 二者在协议上兼容“magic byte + schema id”思路，但管理 API/配置有差异。自管场景下 Apicurio 成本更低；已有 Confluent 平台则沿用即可。

@@ -105,7 +105,12 @@
         <option value="running">running</option>
         <option value="paused">paused</option>
       </select>
-      <button onclick="listExperiments()">List</button>
+      <input id="exp_size" placeholder="size" value="20" size="4" />
+      <button onclick="listExperiments(0)">List</button>
+      <button onclick="expPrev()">Prev</button>
+      <span id="exp_page_info"></span>
+      <button onclick="expNext()">Next</button>
+      <button onclick="exportExperiments()">Export JSON</button>
     </div>
     <div>
       <h4>Create/Update</h4>
@@ -125,7 +130,7 @@
     </div>
     <div>
       <table border="1" cellpadding="6" cellspacing="0">
-        <thead><tr><th>id</th><th>name</th><th>status</th><th>actions</th></tr></thead>
+        <thead><tr><th>id</th><th>name</th><th>status</th><th>updated</th><th>actions</th></tr></thead>
         <tbody id="exp_tbody"></tbody>
       </table>
     </div>
@@ -277,17 +282,21 @@ async function loadProjectsFilter(){
   }
 }
 
-async function listExperiments(){
+let EXP_PAGE=0, EXP_SIZE=20, EXP_TOTAL=0;
+async function listExperiments(pg){
+  if (typeof pg==='number') EXP_PAGE=pg;
   const pid = document.getElementById('exp_proj').value;
   const st = document.getElementById('exp_status').value;
   if (!pid) { alert('select project'); return; }
   const params = new URLSearchParams(); params.set('projectId', pid); if (st) params.set('status', st);
+  EXP_SIZE = parseInt(document.getElementById('exp_size').value||'20'); if (isNaN(EXP_SIZE)||EXP_SIZE<1) EXP_SIZE=20;
+  params.set('page', String(EXP_PAGE)); params.set('size', String(EXP_SIZE));
   const r = await fetch('/api/experiments?'+params.toString(), {headers:{'x-admin-token':TOK}});
-  const js = await r.json();
+  const js = await r.json(); const items = js.items || js; EXP_TOTAL = js.total || items.length;
   const tb = document.getElementById('exp_tbody'); tb.innerHTML='';
-  for (const e of js) {
+  for (const e of items) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${e.id}</td><td>${e.name||''}</td><td>${e.status}</td><td>
+    tr.innerHTML = `<td>${e.id}</td><td>${e.name||''}</td><td>${e.status}</td><td>${e.updatedAt||''}</td><td>
       <button onclick=\"expPublish('${'${'}e.id}'}')\">Publish</button>
       <button onclick=\"expPause('${'${'}e.id}'}')\">Pause</button>
       <button onclick=\"expDelete('${'${'}e.id}'}')\">Delete</button>
@@ -295,6 +304,8 @@ async function listExperiments(){
     </td>`;
     tb.appendChild(tr);
   }
+  const start=EXP_PAGE*EXP_SIZE+1, end=Math.min((EXP_PAGE+1)*EXP_SIZE, EXP_TOTAL);
+  document.getElementById('exp_page_info').textContent = `Page ${EXP_PAGE+1}, showing ${start}-${end} of ${EXP_TOTAL}`;
 }
 
 async function upsertExperiment(){
@@ -304,6 +315,7 @@ async function upsertExperiment(){
   const salt = document.getElementById('exp_salt').value.trim();
   const status = document.getElementById('exp_status_edit').value;
   let config={}; try { const txt=document.getElementById('exp_config').value; config = txt?JSON.parse(txt):{}; } catch(e){ alert('invalid config JSON'); return; }
+  const verr = validateExperimentConfig(config); if (verr) { alert('config invalid: '+verr); return; }
   if (!id || !projectId) { alert('id/projectId required'); return; }
   const body = {id, projectId, name, status, salt, config};
   const r = await fetch('/api/experiments',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify(body)});
@@ -320,6 +332,41 @@ function expLoad(id, projectId, name, salt, status){
   document.getElementById('exp_salt').value = salt;
   document.getElementById('exp_status_edit').value = status||'draft';
   // config remains manual; optionally fetch /api/config for running ones
+}
+
+function expPrev(){ if (EXP_PAGE>0){ listExperiments(EXP_PAGE-1); } }
+function expNext(){ if ((EXP_PAGE+1)*EXP_SIZE < EXP_TOTAL){ listExperiments(EXP_PAGE+1); } }
+async function exportExperiments(){
+  const pid = document.getElementById('exp_proj').value; if (!pid) return alert('select project');
+  const r = await fetch('/api/experiments/export?projectId='+encodeURIComponent(pid),{headers:{'x-admin-token':TOK}});
+  const js = await r.json();
+  const blob = new Blob([JSON.stringify(js,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`experiments_${pid}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function validateExperimentConfig(cfg){
+  const vars = cfg.variants; if (!Array.isArray(vars) || vars.length===0) return 'variants required';
+  let sum = 0; const names = new Set();
+  for (const v of vars) {
+    if (!v || typeof v.name!== 'string' || !v.name.trim()) return 'variant.name required';
+    if (names.has(v.name)) return 'variant.name must be unique'; names.add(v.name);
+    if (v.weight!=null && typeof v.weight!=='number') return 'variant.weight must be number';
+    if (typeof v.weight==='number' && v.weight < 0) return 'variant.weight must be >= 0';
+    if (typeof v.weight==='number') sum += Math.floor(v.weight);
+  }
+  const t = cfg.targeting; if (t) {
+    if (t.platform && !Array.isArray(t.platform)) return 'targeting.platform must be array';
+    if (t.appVersionMin && typeof t.appVersionMin!=='string') return 'targeting.appVersionMin must be string';
+    if (t.appVersionMax && typeof t.appVersionMax!=='string') return 'targeting.appVersionMax must be string';
+    if (t.countries && !Array.isArray(t.countries)) return 'targeting.countries must be array';
+  }
+  const m = cfg.metrics; if (m) {
+    if (typeof m !== 'object') return 'metrics must be object';
+    if (m.primary && typeof m.primary !== 'string') return 'metrics.primary must be string';
+    if (m.secondary && !Array.isArray(m.secondary)) return 'metrics.secondary must be array';
+  }
+  return '';
 }
 
 function toggleAll(cb){ document.querySelectorAll('#keys_tbody input.sel').forEach(x=>x.checked=cb.checked); }
