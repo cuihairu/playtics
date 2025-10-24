@@ -1,0 +1,23 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+description: Retention by cohort day and offset d
+owners: []
+schema: default
+table_name: retention_daily
+uuid: 6c7e3fab-9373-4a8b-c3b2-3a8fbd5f8503
+columns:
+  - column_name: project_id
+    is_dttm: false
+    type: String
+  - column_name: cohort_date
+    is_dttm: true
+    type: Date
+  - column_name: d
+    is_dttm: false
+    type: UInt16
+  - column_name: users
+    is_dttm: false
+    type: UInt64
+metrics:
+  - metric_name: sum_users
+    expression: sum(users)
+    metric_type: numeric

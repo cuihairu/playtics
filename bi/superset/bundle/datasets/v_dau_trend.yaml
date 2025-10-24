@@ -1,0 +1,20 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+description: Daily active users trend view
+owners: []
+schema: default
+table_name: v_dau_trend
+uuid: 5b6d2e9c-8262-4f7a-b2a1-2f7eac4e7402
+columns:
+  - column_name: project_id
+    is_dttm: false
+    type: String
+  - column_name: event_date
+    is_dttm: true
+    type: Date
+  - column_name: dau
+    is_dttm: false
+    type: UInt64
+metrics:
+  - metric_name: sum_dau
+    expression: sum(dau)
+    metric_type: numeric

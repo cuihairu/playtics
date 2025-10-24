@@ -1,0 +1,16 @@
+slice_name: Retention
+viz_type: pivot_table_v2
+description:
+params:
+  datasource: 6c7e3fab-9373-4a8b-c3b2-3a8fbd5f8503
+  viz_type: pivot_table_v2
+  groupbyRows:
+    - cohort_date
+  groupbyColumns:
+    - d
+  metrics:
+    - label: sum_users
+      expressionType: SQL
+      sqlExpression: sum(users)
+  time_range: No filter
+uuid: afbc7def-d7b7-4ecf-07f6-7ec3ff91c907

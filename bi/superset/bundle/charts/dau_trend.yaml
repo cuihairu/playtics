@@ -1,0 +1,15 @@
+slice_name: DAU Trend
+viz_type: echarts_timeseries_line
+description:
+params:
+  datasource: 5b6d2e9c-8262-4f7a-b2a1-2f7eac4e7402
+  viz_type: echarts_timeseries_line
+  x_axis: event_date
+  time_grain_sqla: P1D
+  metrics:
+    - label: sum_dau
+      expressionType: SQL
+      sqlExpression: sum(dau)
+  groupby: []
+  time_range: No filter
+uuid: 9fab6cde-c6a6-4dbe-f6e5-6db2ef80b806

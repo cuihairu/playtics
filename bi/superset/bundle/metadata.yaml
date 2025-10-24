@@ -1,0 +1,17 @@
+version: 1.0.0
+type: Bundle
+bundle:
+  databases:
+    - path: databases/playtics_ch.yaml
+  datasets:
+    - path: datasets/v_events_trend.yaml
+    - path: datasets/v_dau_trend.yaml
+    - path: datasets/retention_daily.yaml
+    - path: datasets/funnels_2step.yaml
+  charts:
+    - path: charts/events_trend.yaml
+    - path: charts/dau_trend.yaml
+    - path: charts/retention_pivot.yaml
+    - path: charts/funnel_bar.yaml
+  dashboards:
+    - path: dashboards/playtics_overview.yaml

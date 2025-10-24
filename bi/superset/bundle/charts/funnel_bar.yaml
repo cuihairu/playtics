@@ -1,0 +1,20 @@
+slice_name: Funnel
+viz_type: bar
+description:
+params:
+  datasource: 7d8f4abc-a484-4b9c-d4c3-4b90ce6f9604
+  viz_type: bar
+  columns:
+    - event_date
+  groupby:
+    - step1
+    - step2
+  metrics:
+    - label: sum_started
+      expressionType: SQL
+      sqlExpression: sum(started)
+    - label: sum_completed
+      expressionType: SQL
+      sqlExpression: sum(completed)
+  time_range: No filter
+uuid: bfcd8ef0-e8c8-40d0-18a7-8fd410a2da08

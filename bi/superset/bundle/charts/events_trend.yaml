@@ -1,0 +1,19 @@
+slice_name: Events Trend
+viz_type: echarts_timeseries_line
+description:
+cache_timeout:
+params:
+  datasource: 4a5c1c8b-7151-4ebc-9f1f-1e6dfb3d6301
+  viz_type: echarts_timeseries_line
+  x_axis: event_date
+  time_grain_sqla: P1D
+  metrics:
+    - label: sum_events
+      expressionType: SIMPLE
+      aggregate: SUM
+      sqlExpression: null
+      column: events
+  groupby:
+    - event_name
+  time_range: No filter
+uuid: 8e9a5bcd-b595-4cad-e5d4-5ca1df7fa705

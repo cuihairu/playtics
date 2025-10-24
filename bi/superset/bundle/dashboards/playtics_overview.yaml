@@ -1,0 +1,43 @@
+dashboard_title: Playtics Overview
+description:
+position:
+  CHART-8e9a5bcd-b595-4cad-e5d4-5ca1df7fa705:
+    type: CHART
+    id: CHART-8e9a5bcd-b595-4cad-e5d4-5ca1df7fa705
+    children: []
+    meta:
+      chartUuid: 8e9a5bcd-b595-4cad-e5d4-5ca1df7fa705
+      width: 12
+      height: 15
+      sliceName: Events Trend
+  CHART-9fab6cde-c6a6-4dbe-f6e5-6db2ef80b806:
+    type: CHART
+    id: CHART-9fab6cde-c6a6-4dbe-f6e5-6db2ef80b806
+    children: []
+    meta:
+      chartUuid: 9fab6cde-c6a6-4dbe-f6e5-6db2ef80b806
+      width: 12
+      height: 15
+      sliceName: DAU Trend
+  CHART-afbc7def-d7b7-4ecf-07f6-7ec3ff91c907:
+    type: CHART
+    id: CHART-afbc7def-d7b7-4ecf-07f6-7ec3ff91c907
+    children: []
+    meta:
+      chartUuid: afbc7def-d7b7-4ecf-07f6-7ec3ff91c907
+      width: 24
+      height: 20
+      sliceName: Retention
+  CHART-bfcd8ef0-e8c8-40d0-18a7-8fd410a2da08:
+    type: CHART
+    id: CHART-bfcd8ef0-e8c8-40d0-18a7-8fd410a2da08
+    children: []
+    meta:
+      chartUuid: bfcd8ef0-e8c8-40d0-18a7-8fd410a2da08
+      width: 24
+      height: 15
+      sliceName: Funnel
+metadata:
+  slug: playtics-overview
+uuid: c0de9a11-f9d9-4211-99b8-90ea11bbcc09
+version: 1.0.0

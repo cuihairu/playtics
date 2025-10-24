@@ -1,0 +1,32 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+description: Two-step funnel daily aggregations
+owners: []
+schema: default
+table_name: funnels_2step
+uuid: 7d8f4abc-a484-4b9c-d4c3-4b90ce6f9604
+columns:
+  - column_name: project_id
+    is_dttm: false
+    type: String
+  - column_name: event_date
+    is_dttm: true
+    type: Date
+  - column_name: step1
+    is_dttm: false
+    type: String
+  - column_name: step2
+    is_dttm: false
+    type: String
+  - column_name: started
+    is_dttm: false
+    type: UInt64
+  - column_name: completed
+    is_dttm: false
+    type: UInt64
+metrics:
+  - metric_name: sum_started
+    expression: sum(started)
+    metric_type: numeric
+  - metric_name: sum_completed
+    expression: sum(completed)
+    metric_type: numeric

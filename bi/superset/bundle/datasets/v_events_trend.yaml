@@ -1,0 +1,23 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+description: Events trend view (pre-aggregated)
+owners: []
+schema: default
+table_name: v_events_trend
+uuid: 4a5c1c8b-7151-4ebc-9f1f-1e6dfb3d6301
+columns:
+  - column_name: project_id
+    is_dttm: false
+    type: String
+  - column_name: event_date
+    is_dttm: true
+    type: Date
+  - column_name: event_name
+    is_dttm: false
+    type: String
+  - column_name: events
+    is_dttm: false
+    type: UInt64
+metrics:
+  - metric_name: sum_events
+    expression: sum(events)
+    metric_type: numeric
