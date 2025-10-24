@@ -31,3 +31,8 @@ Kafka Producer（Avro）
 - 观察 P95/P99、429 率、Kafka 发送速率/错误、Flink Lag（若联动下游）
 - 通过 `scripts/perf-matrix.sh` 与 `scripts/perf-report.py` 采集与生成 CSV 报表
 
+ClickHouse 查询侧（建议）
+- 导入基础 Schema：`schema/sql/clickhouse/schema.sql`
+- 导入实验 MVs：`schema/sql/clickhouse/schema_experiments_mv.sql`
+- 导入视图：`schema/sql/clickhouse/queries_experiment.sql`
+- 使用 `clickhouse-benchmark` 对 `v_exp_conversion_24h(_dim)`/`v_exp_conversion_7d(_dim)` 与对应基于 MV 的 Join 查询进行评估，视数据规模选择是否切换到基于 `exp_exposure_users` 与 `exp_first_level_complete` 的 Join
