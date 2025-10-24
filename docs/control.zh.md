@@ -61,4 +61,5 @@ curl -sS -X POST 'http://localhost:8085/api/keys' -H 'content-type: application/
   - 返回: 若分页则 { items:[], total:N }；否则为数组
 - 删除
   - DELETE /api/keys/{apiKey}
+  - POST /api/keys/batch-delete body: {"apiKeys":["pk_x","pk_y"]}
   - DELETE /api/projects/{projectId}（同时删除该项目下全部 Key）

@@ -77,8 +77,13 @@
       <button onclick="listKeys(0)">Search</button>
       <button onclick="clearSearch()">Clear</button>
     </div>
+    <div>
+      <button onclick="deleteSelected()">Delete Selected</button>
+      <button onclick="exportCsv()">Export CSV</button>
+      <label><input type="checkbox" id="sel_all" onclick="toggleAll(this)"> Select All</label>
+    </div>
     <table border="1" cellpadding="6" cellspacing="0">
-      <thead><tr><th>apiKey</th><th>secret</th><th>projectId</th><th>rpm</th><th>ipRpm</th><th>actions</th></tr></thead>
+      <thead><tr><th></th><th>apiKey</th><th>secret</th><th>projectId</th><th>rpm</th><th>ipRpm</th><th>actions</th></tr></thead>
       <tbody id="keys_tbody"></tbody>
     </table>
     <div>
@@ -92,6 +97,7 @@
 let TOK = localStorage.getItem('pt_admin_token') || '';
 let PAGE = 0, SIZE = 20, TOTAL = 0, Q = '', PROJ = '';
 let PPAGE = 0, PSIZE = 20, PTOTAL = 0, PQ = '';
+let KEY_ITEMS = [];
 document.getElementById('admintok').value = TOK;
 function saveTok(){ TOK = document.getElementById('admintok').value.trim(); localStorage.setItem('pt_admin_token', TOK); alert('saved'); }
 async function createProject(){
@@ -162,11 +168,11 @@ async function listKeys(){
   if (Q) params.set('q', Q); if (PROJ) params.set('projectId', PROJ);
   const r = await fetch('/api/keys?'+params.toString(),{headers:{'x-admin-token':TOK}});
   const js = await r.json();
-  const items = js.items || js; TOTAL = js.total || items.length;
+  const items = js.items || js; TOTAL = js.total || items.length; KEY_ITEMS = items;
   const tb = document.getElementById('keys_tbody'); tb.innerHTML = '';
   for (const k of items) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><code>${k.apiKey}</code></td>
+    tr.innerHTML = `<td><input type="checkbox" class="sel" value="${k.apiKey}"></td><td><code>${k.apiKey}</code></td>
                     <td><code>${k.secret||''}</code></td>
                     <td>${k.projectId||''}</td>
                     <td>${k.rpm||''}</td>
@@ -223,6 +229,30 @@ async function loadProjectsFilter(){
     opt.value = p.id; opt.textContent = p.id + (p.name?(' - '+p.name):'');
     sel.appendChild(opt);
   }
+}
+
+function toggleAll(cb){ document.querySelectorAll('#keys_tbody input.sel').forEach(x=>x.checked=cb.checked); }
+async function deleteSelected(){
+  const sel = Array.from(document.querySelectorAll('#keys_tbody input.sel:checked')).map(x=>x.value);
+  if (sel.length===0) return alert('none selected');
+  if (!confirm('delete '+sel.length+' keys?')) return;
+  await fetch('/api/keys/batch-delete',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify({apiKeys:sel})});
+  listKeys();
+}
+async function exportCsv(){
+  // fetch up to 10000 with current filters
+  const params = new URLSearchParams(); params.set('page', 0); params.set('size', 10000);
+  if (Q) params.set('q', Q); if (PROJ) params.set('projectId', PROJ);
+  const r = await fetch('/api/keys?'+params.toString(),{headers:{'x-admin-token':TOK}});
+  const js = await r.json();
+  const items = js.items || js;
+  let csv = 'apiKey,secret,projectId,rpm,ipRpm\n';
+  for (const k of items){
+    csv += `${k.apiKey||''},${k.secret||''},${k.projectId||''},${k.rpm||''},${k.ipRpm||''}\n`;
+  }
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='keys.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 </script>
 </body>

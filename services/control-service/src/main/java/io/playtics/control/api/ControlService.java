@@ -60,6 +60,12 @@ public class ControlService {
         return true;
     }
 
+    public long deleteKeys(java.util.List<String> apiKeys) {
+        if (apiKeys == null || apiKeys.isEmpty()) return 0L;
+        keyRepo.deleteAllById(apiKeys);
+        return apiKeys.size();
+    }
+
     public long deleteProject(String projectId) {
         long n = keyRepo.deleteByProjectId(projectId);
         projectRepo.deleteById(projectId);

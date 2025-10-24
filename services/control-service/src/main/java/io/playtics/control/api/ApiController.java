@@ -61,6 +61,8 @@ public class ApiController {
         public List<String> denyKeys; public List<String> maskKeys;
     }
 
+    public static class BatchDeleteReq { public List<String> apiKeys; }
+
     @PutMapping("/keys/{apiKey}/policy")
     public ResponseEntity<Models.KeyDetailResp> updatePolicy(@PathVariable String apiKey, @RequestBody UpdatePolicyReq req) {
         var r = new Models.KeyDetailResp();
@@ -74,6 +76,12 @@ public class ApiController {
     public ResponseEntity<Map<String,Object>> deleteKey(@PathVariable String apiKey) {
         boolean ok = svc.deleteKey(apiKey);
         return ok ? ResponseEntity.ok(Map.of("deleted", true)) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/keys/batch-delete")
+    public ResponseEntity<Map<String,Object>> deleteKeys(@RequestBody BatchDeleteReq req) {
+        long n = svc.deleteKeys(req.apiKeys);
+        return ResponseEntity.ok(Map.of("deleted", n));
     }
 
     @DeleteMapping("/projects/{projectId}")
