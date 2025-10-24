@@ -31,4 +31,5 @@ android {
 dependencies {
   implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
   implementation("com.squareup.okhttp3:okhttp:4.12.0")
+  testImplementation("junit:junit:4.13.2")
 }
