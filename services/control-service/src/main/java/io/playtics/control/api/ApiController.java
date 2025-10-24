@@ -10,45 +10,34 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
-    private final MemoryStore store;
-    public ApiController() { this.store = new MemoryStore(); }
+    private final ControlService svc;
+    public ApiController(ControlService svc) { this.svc = svc; }
 
     @PostMapping("/projects")
     public Models.Project upsertProject(@RequestBody Models.Project req) {
-        return store.upsertProject(req.id, req.name);
+        return svc.upsertProject(req.id, req.name);
     }
 
     @GetMapping("/projects")
     public List<Models.Project> listProjects() {
-        return store.listProjects().stream().collect(Collectors.toList());
+        return svc.listProjects();
     }
 
     @PostMapping("/keys")
     public Models.ApiKeyResp createKey(@RequestBody Models.CreateKeyReq req) {
-        var k = store.createKey(req.projectId, req.name);
-        Models.ApiKeyResp resp = new Models.ApiKeyResp();
-        resp.apiKey = k.apiKey; resp.secret = k.secret; resp.projectId = k.projectId; resp.name = k.name;
-        return resp;
+        return svc.createKey(req.projectId, req.name);
     }
 
     @GetMapping("/keys/{apiKey}")
     public ResponseEntity<Models.KeyDetailResp> getKey(@PathVariable String apiKey) {
-        var k = store.getKey(apiKey);
-        if (k == null) return ResponseEntity.notFound().build();
-        Models.KeyDetailResp resp = new Models.KeyDetailResp();
-        resp.apiKey = k.apiKey; resp.secret = k.secret; resp.projectId = k.projectId;
-        resp.rpm = k.rpm; resp.ipRpm = k.ipRpm; resp.propsAllowlist = k.propsAllowlist;
-        resp.piiEmail = k.piiEmail; resp.piiPhone = k.piiPhone; resp.piiIp = k.piiIp;
-        resp.denyKeys = k.denyKeys; resp.maskKeys = k.maskKeys;
-        return ResponseEntity.ok(resp);
+        var r = svc.getKey(apiKey);
+        if (r == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(r);
     }
 
     @GetMapping("/keys")
     public List<Models.KeyDetailResp> listKeys() {
-        return store.listKeys().stream().map(k -> {
-            Models.KeyDetailResp r = new Models.KeyDetailResp();
-            r.apiKey = k.apiKey; r.secret = k.secret; r.projectId = k.projectId; r.rpm = k.rpm; r.ipRpm = k.ipRpm; r.propsAllowlist = k.propsAllowlist; return r;
-        }).collect(Collectors.toList());
+        return svc.listKeys();
     }
 
     public static class UpdatePolicyReq {
@@ -59,12 +48,10 @@ public class ApiController {
 
     @PutMapping("/keys/{apiKey}/policy")
     public ResponseEntity<Models.KeyDetailResp> updatePolicy(@PathVariable String apiKey, @RequestBody UpdatePolicyReq req) {
-        var k = store.updatePolicy(apiKey, req.rpm, req.ipRpm, req.propsAllowlist,
-                req.piiEmail, req.piiPhone, req.piiIp, req.denyKeys, req.maskKeys);
-        if (k == null) return ResponseEntity.notFound().build();
-        Models.KeyDetailResp resp = new Models.KeyDetailResp();
-        resp.apiKey = k.apiKey; resp.secret = k.secret; resp.projectId = k.projectId; resp.rpm = k.rpm; resp.ipRpm = k.ipRpm; resp.propsAllowlist = k.propsAllowlist;
-        resp.piiEmail = k.piiEmail; resp.piiPhone = k.piiPhone; resp.piiIp = k.piiIp; resp.denyKeys = k.denyKeys; resp.maskKeys = k.maskKeys;
-        return ResponseEntity.ok(resp);
+        var r = new Models.KeyDetailResp();
+        r.rpm = req.rpm; r.ipRpm = req.ipRpm; r.propsAllowlist = req.propsAllowlist; r.piiEmail = req.piiEmail; r.piiPhone = req.piiPhone; r.piiIp = req.piiIp; r.denyKeys = req.denyKeys; r.maskKeys = req.maskKeys;
+        var out = svc.updatePolicy(apiKey, r);
+        if (out == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(out);
     }
 }

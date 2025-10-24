@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Playtics Control</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Arial; margin: 20px; }
+    section { margin-bottom: 24px; }
+    input, button, textarea { padding: 6px; margin: 4px; }
+    pre { background: #f6f8fa; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Playtics Control</h2>
+  <section>
+    <h3>Create/Update Project</h3>
+    <input id="pid" placeholder="project id" />
+    <input id="pname" placeholder="project name" />
+    <button onclick="createProject()">Save</button>
+  </section>
+  <section>
+    <h3>Create API Key</h3>
+    <input id="kpid" placeholder="project id" />
+    <input id="kname" placeholder="key name" />
+    <button onclick="createKey()">Create</button>
+  </section>
+  <section>
+    <h3>Update Policy</h3>
+    <input id="k_api" placeholder="api key" />
+    <input id="rpm" placeholder="rpm (per key)" />
+    <input id="ipRpm" placeholder="ipRpm (per IP)" />
+    <input id="allowlist" placeholder="propsAllowlist, comma separated" size="60" />
+    <input id="piiEmail" placeholder="piiEmail (allow|mask|drop)" />
+    <input id="piiPhone" placeholder="piiPhone (allow|mask|drop)" />
+    <input id="piiIp" placeholder="piiIp (allow|coarse|drop)" />
+    <input id="denyKeys" placeholder="denyKeys (comma)" size="50" />
+    <input id="maskKeys" placeholder="maskKeys (comma)" size="50" />
+    <button onclick="updatePolicy()">Update</button>
+  </section>
+  <section>
+    <h3>Projects</h3>
+    <button onclick="listProjects()">Refresh</button>
+    <pre id="out_proj"></pre>
+  </section>
+  <section>
+    <h3>Keys</h3>
+    <button onclick="listKeys()">Refresh</button>
+    <pre id="out_keys"></pre>
+  </section>
+
+<script>
+async function createProject(){
+  const id = document.getElementById('pid').value.trim();
+  const name = document.getElementById('pname').value.trim();
+  const r = await fetch('/api/projects',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id,name})});
+  alert('Saved '+r.status);
+}
+async function createKey(){
+  const projectId = document.getElementById('kpid').value.trim();
+  const name = document.getElementById('kname').value.trim();
+  const r = await fetch('/api/keys',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({projectId,name})});
+  const js = await r.json();
+  alert('apiKey='+js.apiKey+'\nsecret='+js.secret);
+}
+async function updatePolicy(){
+  const apiKey = document.getElementById('k_api').value.trim();
+  const rpm = toInt(document.getElementById('rpm').value);
+  const ipRpm = toInt(document.getElementById('ipRpm').value);
+  const allowlist = toList(document.getElementById('allowlist').value);
+  const piiEmail = strOrNull(document.getElementById('piiEmail').value);
+  const piiPhone = strOrNull(document.getElementById('piiPhone').value);
+  const piiIp = strOrNull(document.getElementById('piiIp').value);
+  const denyKeys = toList(document.getElementById('denyKeys').value);
+  const maskKeys = toList(document.getElementById('maskKeys').value);
+  const body = {rpm, ipRpm, propsAllowlist: allowlist, piiEmail, piiPhone, piiIp, denyKeys, maskKeys};
+  const r = await fetch('/api/keys/'+apiKey+'/policy',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  alert('Update '+r.status);
+}
+async function listProjects(){
+  const r = await fetch('/api/projects'); document.getElementById('out_proj').textContent = JSON.stringify(await r.json(),null,2);
+}
+async function listKeys(){
+  const r = await fetch('/api/keys'); document.getElementById('out_keys').textContent = JSON.stringify(await r.json(),null,2);
+}
+function toList(s){ s=s.trim(); if(!s) return null; return s.split(',').map(x=>x.trim()).filter(Boolean); }
+function strOrNull(s){ s=s.trim(); return s||null; }
+function toInt(s){ s=s.trim(); return s?parseInt(s):null; }
+</script>
+</body>
+</html>
