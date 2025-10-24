@@ -1,0 +1,15 @@
+slice_name: Experiment Conversion Rate (Same-day)
+viz_type: echarts_timeseries_line
+params:
+  datasource: e2222222-2222-4222-8222-222222222222
+  viz_type: echarts_timeseries_line
+  x_axis: event_date
+  time_grain_sqla: P1D
+  groupby:
+    - variant
+  metrics:
+    - label: avg_cr
+      expressionType: SQL
+      sqlExpression: avg(cr)
+  time_range: No filter
+uuid: e4444444-4444-4444-8444-444444444444

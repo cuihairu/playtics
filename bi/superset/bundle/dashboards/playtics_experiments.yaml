@@ -1,0 +1,25 @@
+dashboard_title: Playtics Experiments
+description: Experiment exposures and conversion rates
+position:
+  CHART-e3333333-3333-4333-8333-333333333333:
+    type: CHART
+    id: CHART-e3333333-3333-4333-8333-333333333333
+    children: []
+    meta:
+      chartUuid: e3333333-3333-4333-8333-333333333333
+      width: 24
+      height: 15
+      sliceName: Experiment Exposures
+  CHART-e4444444-4444-4444-8444-444444444444:
+    type: CHART
+    id: CHART-e4444444-4444-4444-8444-444444444444
+    children: []
+    meta:
+      chartUuid: e4444444-4444-4444-8444-444444444444
+      width: 24
+      height: 15
+      sliceName: Experiment Conversion Rate (Same-day)
+metadata:
+  slug: playtics-experiments
+uuid: e5555555-5555-4555-8555-555555555555
+version: 1.0.0
