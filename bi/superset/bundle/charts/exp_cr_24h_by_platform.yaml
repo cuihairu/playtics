@@ -1,0 +1,15 @@
+slice_name: Experiment CR 24h by Platform
+viz_type: echarts_timeseries_line
+params:
+  datasource: f2222222-2222-4222-8222-222222222222
+  viz_type: echarts_timeseries_line
+  x_axis: exposure_date
+  time_grain_sqla: P1D
+  groupby:
+    - platform
+  metrics:
+    - label: avg_cr_24h
+      expressionType: SQL
+      sqlExpression: avg(cr_24h)
+  time_range: No filter
+uuid: f5555555-5555-4555-8555-555555555555
