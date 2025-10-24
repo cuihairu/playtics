@@ -60,3 +60,29 @@ SELECT
   uniqState(if(user_id != '' , user_id, device_id)) AS dau
 FROM events
 GROUP BY project_id, event_date;
+
+-- Retention 按 cohort 日与偏移 d（0/1/7/30）聚合
+CREATE TABLE IF NOT EXISTS retention_daily
+(
+  project_id String,
+  cohort_date Date,
+  d UInt16,
+  users UInt64
+)
+ENGINE = SummingMergeTree
+PARTITION BY (project_id, toYYYYMM(cohort_date))
+ORDER BY (project_id, cohort_date, d);
+
+-- 漏斗（两步）：按日聚合 started/completed
+CREATE TABLE IF NOT EXISTS funnels_2step
+(
+  project_id String,
+  event_date Date,
+  step1 LowCardinality(String),
+  step2 LowCardinality(String),
+  started UInt64,
+  completed UInt64
+)
+ENGINE = SummingMergeTree
+PARTITION BY (project_id, toYYYYMM(event_date))
+ORDER BY (project_id, event_date, step1, step2);
