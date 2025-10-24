@@ -1,0 +1,10 @@
+apiVersion: 1
+disableDeletion: false
+folders:
+  - uid: playtics
+    title: Playtics
+    provisioned: true
+    folders: []
+    dashboards:
+      - uid: playtics-overview
+        file: /var/lib/grafana/dashboards/playtics-overview.json
