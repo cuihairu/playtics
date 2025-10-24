@@ -25,6 +25,13 @@ public class ControlService {
         return projectRepo.findAll().stream().map(pe -> { Models.Project m = new Models.Project(); m.id = pe.id; m.name = pe.name; return m; }).collect(Collectors.toList());
     }
 
+    public Paged<Models.Project> searchProjects(String q, int page, int size) {
+        var pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").ascending());
+        var pg = projectRepo.search(emptyToNull(q), pageable);
+        var items = pg.getContent().stream().map(pe -> { Models.Project m = new Models.Project(); m.id = pe.id; m.name = pe.name; return m; }).collect(Collectors.toList());
+        return new Paged<>(items, pg.getTotalElements());
+    }
+
     public Models.ApiKeyResp createKey(String projectId, String name) {
         ApiKeyEntity e = new ApiKeyEntity();
         e.apiKey = gen("pk_"); e.secret = gen("sk_"); e.projectId = projectId; e.name = name; e.rpm = 600; e.ipRpm = 300;

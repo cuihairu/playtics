@@ -19,8 +19,15 @@ public class ApiController {
     }
 
     @GetMapping("/projects")
-    public List<Models.Project> listProjects() {
-        return svc.listProjects();
+    public Object listProjects(@RequestParam(value = "q", required = false) String q,
+                               @RequestParam(value = "page", required = false) Integer page,
+                               @RequestParam(value = "size", required = false) Integer size) {
+        if (page == null && size == null && q == null) {
+            return svc.listProjects();
+        }
+        int p = page == null ? 0 : Math.max(0, page);
+        int s = size == null ? 50 : Math.max(1, size);
+        return svc.searchProjects(q, p, s);
     }
 
     @PostMapping("/keys")

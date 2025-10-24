@@ -7,7 +7,7 @@
   - POST /api/projects
   - body: {"id":"p1","name":"Demo"}
 - 列出项目
-  - GET /api/projects
+  - GET /api/projects（支持 `q`/`page`/`size` 分页搜索）
 - 生成 API Key
   - POST /api/keys
   - body: {"projectId":"p1","name":"web"}
@@ -55,3 +55,9 @@ curl -sS -X POST 'http://localhost:8085/api/keys' -H 'content-type: application/
 安全（简单模式）
 - `playtics.admin.token`: 控制面 API 的简易管理令牌（默认 `admin`，生产请更换或接入企业认证）
 - 客户端请求需携带 `x-admin-token: <token>`；静态页面可在顶部填写后保存，后续请求自动附带
+- 列出/搜索 Keys
+  - GET /api/keys?q=&projectId=&page=&size=
+  - 返回: 若分页则 { items:[], total:N }；否则为数组
+- 删除
+  - DELETE /api/keys/{apiKey}
+  - DELETE /api/projects/{projectId}（同时删除该项目下全部 Key）
