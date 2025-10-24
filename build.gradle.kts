@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
   group = "io.playtics"
-  version = "0.1.0-SNAPSHOT"
+  version = "0.1.0"
 
   repositories {
     mavenCentral()
