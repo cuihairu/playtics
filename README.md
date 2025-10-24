@@ -8,6 +8,8 @@ Quick start
 
 Docs
 - Chinese: `docs/architecture.zh.md`, `docs/e2e.zh.md`, `docs/ops.zh.md`, `docs/deploy.k8s.zh.md`
+ - Roadmap: `docs/roadmap.zh.md`
+ - Contributing: `docs/contributing.zh.md`
 
 Deployment
 - Dockerfiles: `services/*/Dockerfile`

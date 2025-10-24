@@ -15,3 +15,5 @@ bash scripts/superset-import.sh   # 导入仪表盘（可选）
 - 运维：docs/ops.zh.md
 - 部署：docs/deploy.k8s.zh.md
 - 发布：docs/release.zh.md
+ - 路线图：docs/roadmap.zh.md
+ - 贡献指南：docs/contributing.zh.md
