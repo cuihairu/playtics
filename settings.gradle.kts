@@ -7,5 +7,6 @@ include(
   "libs:common-otel",
   "services:gateway-service",
   "services:control-service",
-  "jobs:flink:events-enrich-job"
+  "jobs:flink:events-enrich-job",
+  "jobs:flink:sessions-job"
 )

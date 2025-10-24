@@ -47,3 +47,16 @@ CREATE TABLE IF NOT EXISTS sessions
 ENGINE = MergeTree
 PARTITION BY (project_id, toYYYYMM(session_start))
 ORDER BY (project_id, user_id, session_start);
+
+-- 每日活跃用户（基于 events 表）
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_dau
+ENGINE = AggregatingMergeTree
+PARTITION BY (project_id, toYYYYMM(event_date))
+ORDER BY (project_id, event_date)
+AS
+SELECT
+  project_id,
+  event_date,
+  uniqState(if(user_id != '' , user_id, device_id)) AS dau
+FROM events
+GROUP BY project_id, event_date;
