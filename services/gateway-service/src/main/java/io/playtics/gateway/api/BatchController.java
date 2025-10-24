@@ -61,6 +61,15 @@ public class BatchController {
             BatchResponse resp = new BatchResponse();
             String apiKey = req.getHeaders().getFirst("x-api-key");
             io.playtics.gateway.config.PolicyService.Policy p = policyService.getPolicy(apiKey);
+            io.playtics.gateway.config.PiiPolicy.Overrides overrides = null;
+            if (p != null && (p.piiEmail != null || p.piiPhone != null || p.piiIp != null || (p.denyKeys != null && !p.denyKeys.isEmpty()) || (p.maskKeys != null && !p.maskKeys.isEmpty()))) {
+                overrides = new io.playtics.gateway.config.PiiPolicy.Overrides();
+                if (p.piiEmail != null) overrides.emailMode = parseMode(p.piiEmail);
+                if (p.piiPhone != null) overrides.phoneMode = parseMode(p.piiPhone);
+                if (p.piiIp != null) overrides.ipMode = parseIpMode(p.piiIp);
+                if (p.denyKeys != null) overrides.denyKeys = new java.util.HashSet<>(p.denyKeys.stream().map(String::toLowerCase).toList());
+                if (p.maskKeys != null) overrides.maskKeys = new java.util.HashSet<>(p.maskKeys.stream().map(String::toLowerCase).toList());
+            }
             for (Event e : events) {
                 if (e == null || e.eventId == null || e.eventName == null || e.projectId == null || e.deviceId == null) {
                     HashMap<String, String> rej = new HashMap<>();
@@ -82,7 +91,7 @@ public class BatchController {
                     }
                 }
                 // PII: block keys
-                if (e.props != null && piiPolicy.hasBlockedKeys(e.props)) {
+                if (e.props != null && piiPolicy.hasBlockedKeys(e.props, overrides)) {
                     HashMap<String, String> rej = new HashMap<>();
                     rej.put("event_id", e.eventId);
                     rej.put("reason", "pii_blocked");
@@ -91,11 +100,11 @@ public class BatchController {
                     continue;
                 }
                 // PII: sanitize props and client_ip, user_id
-                if (e.props != null) e.props = piiPolicy.sanitizeProps(e.props);
-                e.clientIp = piiPolicy.sanitizeClientIp(e.clientIp);
+                if (e.props != null) e.props = piiPolicy.sanitizeProps(e.props, overrides);
+                e.clientIp = piiPolicy.sanitizeClientIp(e.clientIp, overrides);
                 if (e.userId != null) {
                     Map<String,Object> tmp = new java.util.HashMap<>(); tmp.put("user_id", e.userId);
-                    tmp = piiPolicy.sanitizeProps(tmp);
+                    tmp = piiPolicy.sanitizeProps(tmp, overrides);
                     Object v = tmp.get("user_id");
                     if (v == null) e.userId = null; else e.userId = String.valueOf(v);
                 }
@@ -165,5 +174,23 @@ public class BatchController {
             }
         } catch (Exception ignored) {}
         return raw;
+    }
+
+    // helpers to parse PII modes from strings
+    private io.playtics.gateway.config.PiiPolicy.Mode parseMode(String s) {
+        if (s == null) return null;
+        return switch (s.toLowerCase()) {
+            case "allow" -> io.playtics.gateway.config.PiiPolicy.Mode.ALLOW;
+            case "drop" -> io.playtics.gateway.config.PiiPolicy.Mode.DROP;
+            default -> io.playtics.gateway.config.PiiPolicy.Mode.MASK;
+        };
+    }
+    private io.playtics.gateway.config.PiiPolicy.IpMode parseIpMode(String s) {
+        if (s == null) return null;
+        return switch (s.toLowerCase()) {
+            case "allow" -> io.playtics.gateway.config.PiiPolicy.IpMode.ALLOW;
+            case "drop" -> io.playtics.gateway.config.PiiPolicy.IpMode.DROP;
+            default -> io.playtics.gateway.config.PiiPolicy.IpMode.COARSE;
+        };
     }
 }

@@ -16,6 +16,12 @@ public class MemoryStore {
         public int rpm = 600;
         public int ipRpm = 300;
         public List<String> propsAllowlist = List.of();
+        // PII override (nullable means use gateway defaults)
+        public String piiEmail;  // allow|mask|drop
+        public String piiPhone;  // allow|mask|drop
+        public String piiIp;     // allow|coarse|drop
+        public List<String> denyKeys; // sensitive keys to block
+        public List<String> maskKeys; // keys to mask
     }
 
     public Models.Project upsertProject(String id, String name) {
@@ -35,12 +41,19 @@ public class MemoryStore {
     }
     public Key getKey(String apiKey) { return keys.get(apiKey); }
 
-    public Key updatePolicy(String apiKey, Integer rpm, Integer ipRpm, List<String> allowlist) {
+    public Key updatePolicy(String apiKey, Integer rpm, Integer ipRpm, List<String> allowlist,
+                            String piiEmail, String piiPhone, String piiIp,
+                            List<String> denyKeys, List<String> maskKeys) {
         Key k = keys.get(apiKey);
         if (k == null) return null;
         if (rpm != null) k.rpm = rpm;
         if (ipRpm != null) k.ipRpm = ipRpm;
         if (allowlist != null) k.propsAllowlist = allowlist;
+        if (piiEmail != null) k.piiEmail = piiEmail;
+        if (piiPhone != null) k.piiPhone = piiPhone;
+        if (piiIp != null) k.piiIp = piiIp;
+        if (denyKeys != null) k.denyKeys = denyKeys;
+        if (maskKeys != null) k.maskKeys = maskKeys;
         return k;
     }
 

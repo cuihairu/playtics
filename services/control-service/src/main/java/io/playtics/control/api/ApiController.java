@@ -38,6 +38,8 @@ public class ApiController {
         Models.KeyDetailResp resp = new Models.KeyDetailResp();
         resp.apiKey = k.apiKey; resp.secret = k.secret; resp.projectId = k.projectId;
         resp.rpm = k.rpm; resp.ipRpm = k.ipRpm; resp.propsAllowlist = k.propsAllowlist;
+        resp.piiEmail = k.piiEmail; resp.piiPhone = k.piiPhone; resp.piiIp = k.piiIp;
+        resp.denyKeys = k.denyKeys; resp.maskKeys = k.maskKeys;
         return ResponseEntity.ok(resp);
     }
 
@@ -49,14 +51,20 @@ public class ApiController {
         }).collect(Collectors.toList());
     }
 
-    public static class UpdatePolicyReq { public Integer rpm; public Integer ipRpm; public List<String> propsAllowlist; }
+    public static class UpdatePolicyReq {
+        public Integer rpm; public Integer ipRpm; public List<String> propsAllowlist;
+        public String piiEmail; public String piiPhone; public String piiIp;
+        public List<String> denyKeys; public List<String> maskKeys;
+    }
 
     @PutMapping("/keys/{apiKey}/policy")
     public ResponseEntity<Models.KeyDetailResp> updatePolicy(@PathVariable String apiKey, @RequestBody UpdatePolicyReq req) {
-        var k = store.updatePolicy(apiKey, req.rpm, req.ipRpm, req.propsAllowlist);
+        var k = store.updatePolicy(apiKey, req.rpm, req.ipRpm, req.propsAllowlist,
+                req.piiEmail, req.piiPhone, req.piiIp, req.denyKeys, req.maskKeys);
         if (k == null) return ResponseEntity.notFound().build();
         Models.KeyDetailResp resp = new Models.KeyDetailResp();
         resp.apiKey = k.apiKey; resp.secret = k.secret; resp.projectId = k.projectId; resp.rpm = k.rpm; resp.ipRpm = k.ipRpm; resp.propsAllowlist = k.propsAllowlist;
+        resp.piiEmail = k.piiEmail; resp.piiPhone = k.piiPhone; resp.piiIp = k.piiIp; resp.denyKeys = k.denyKeys; resp.maskKeys = k.maskKeys;
         return ResponseEntity.ok(resp);
     }
 }

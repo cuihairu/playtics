@@ -21,6 +21,8 @@ public class PolicyService {
 
     public static class Policy {
         public Integer rpm; public Integer ipRpm; public List<String> propsAllowlist;
+        public String piiEmail; public String piiPhone; public String piiIp;
+        public List<String> denyKeys; public List<String> maskKeys;
     }
 
     public PolicyService(Environment env) {
@@ -47,6 +49,11 @@ public class PolicyService {
                 if (resp.get("ipRpm") != null) p.ipRpm = ((Number)resp.get("ipRpm")).intValue();
                 Object al = resp.get("propsAllowlist");
                 if (al instanceof List) p.propsAllowlist = (List<String>) al;
+                if (resp.get("piiEmail") != null) p.piiEmail = String.valueOf(resp.get("piiEmail"));
+                if (resp.get("piiPhone") != null) p.piiPhone = String.valueOf(resp.get("piiPhone"));
+                if (resp.get("piiIp") != null) p.piiIp = String.valueOf(resp.get("piiIp"));
+                Object dk = resp.get("denyKeys"); if (dk instanceof List) p.denyKeys = (List<String>) dk;
+                Object mk = resp.get("maskKeys"); if (mk instanceof List) p.maskKeys = (List<String>) mk;
                 CacheEntry ne = new CacheEntry(); ne.p = p; ne.expireAt = now + 60; cache.put(apiKey, ne);
                 return p;
             }

@@ -30,5 +30,10 @@ public class Models {
         public Integer rpm;
         public Integer ipRpm;
         public List<String> propsAllowlist;
+        public String piiEmail;  // allow|mask|drop
+        public String piiPhone;  // allow|mask|drop
+        public String piiIp;     // allow|coarse|drop
+        public List<String> denyKeys;
+        public List<String> maskKeys;
     }
 }
