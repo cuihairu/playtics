@@ -98,7 +98,7 @@ public class ExperimentController {
         if (cfg == null) return null; // allow empty config
         Object vars = cfg.get("variants");
         if (!(vars instanceof List)) return "variants required (array)";
-        List<?> vs = (List<?>) vars; if (vs.isEmpty()) return "variants must not be empty";
+        List<?> vs = (List<?>) vars; if (vs.isEmpty()) return "variants must not be empty"; if (vs.size() < 2) return "at least 2 variants required";
         int sum = 0; java.util.HashSet<String> names = new java.util.HashSet<>();
         for (Object o : vs){
             if (!(o instanceof Map)) return "variant must be object";
@@ -106,8 +106,9 @@ public class ExperimentController {
             Object name = m.get("name"); if (!(name instanceof String) || ((String)name).isEmpty()) return "variant.name required";
             if (name instanceof String) { String nn = ((String) name).trim(); if (names.contains(nn)) return "variant.name must be unique"; names.add(nn); }
             Object w = m.get("weight"); if (w != null && !(w instanceof Number)) return "variant.weight must be number";
-            if (w instanceof Number) { int wi = ((Number) w).intValue(); if (wi < 0) return "variant.weight must be >= 0"; sum += wi; }
+            if (w instanceof Number) { int wi = ((Number) w).intValue(); if (wi < 0) return "variant.weight must be >= 0"; sum += wi; } else { sum += 1; }
         }
+        if (sum <= 0) return "sum of weights must be > 0";
         // Optional targeting
         Object tg = cfg.get("targeting");
         if (tg != null){
