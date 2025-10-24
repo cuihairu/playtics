@@ -35,6 +35,17 @@ public class MemoryStore {
     }
     public Key getKey(String apiKey) { return keys.get(apiKey); }
 
+    public Key updatePolicy(String apiKey, Integer rpm, Integer ipRpm, List<String> allowlist) {
+        Key k = keys.get(apiKey);
+        if (k == null) return null;
+        if (rpm != null) k.rpm = rpm;
+        if (ipRpm != null) k.ipRpm = ipRpm;
+        if (allowlist != null) k.propsAllowlist = allowlist;
+        return k;
+    }
+
+    public Collection<Key> listKeys() { return keys.values(); }
+
     private static String gen(String prefix) {
         byte[] b = new byte[12]; new SecureRandom().nextBytes(b);
         StringBuilder sb = new StringBuilder(prefix);
