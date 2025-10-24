@@ -10,7 +10,8 @@ import java.util.*;
 @RequestMapping("/api")
 public class ExperimentController {
     private final ExperimentRepo repo;
-    public ExperimentController(ExperimentRepo repo){ this.repo = repo; }
+    private final JsonSchemaService schemaService;
+    public ExperimentController(ExperimentRepo repo, JsonSchemaService schemaService){ this.repo = repo; this.schemaService = schemaService; }
 
     public static class UpsertReq {
         public String id; public String projectId; public String name; public String status; public String salt; public Map<String, Object> config; }
@@ -19,10 +20,11 @@ public class ExperimentController {
     public ResponseEntity<Map<String,Object>> upsert(@RequestBody UpsertReq req){
         if (req.id == null || req.projectId == null) return ResponseEntity.badRequest().body(Map.of("error","missing id/projectId"));
         // Basic config validation server-side to prevent bad payloads stored
+        // JSON Schema validation first (types/minItems, etc.)
+        List<String> errs = schemaService.validateExperimentConfig(req.config);
         String verr = validateConfig(req.config);
-        if (verr != null && !verr.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", verr));
-        }
+        if (verr != null && !verr.isEmpty()) errs.add(verr);
+        if (!errs.isEmpty()) return ResponseEntity.badRequest().body(Map.of("errors", errs));
         ExperimentEntity e = repo.findById(req.id).orElseGet(ExperimentEntity::new);
         e.id = req.id; e.projectId = req.projectId; e.name = req.name; e.status = req.status==null?"draft":req.status; e.salt = req.salt==null?"":req.salt;
         e.configJson = req.config==null?"{}":new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(req.config).toString();
@@ -131,6 +133,18 @@ public class ExperimentController {
             Object secondary = m.get("secondary"); if (secondary != null && !(secondary instanceof List)) return "metrics.secondary must be array";
         }
         return null;
+    }
+
+    // Validate-only endpoint for UI
+    @PostMapping("/experiments/validate")
+    public Map<String,Object> validateOnly(@RequestBody Map<String,Object> body){
+        Object cfg = body.get("config");
+        List<String> errs = schemaService.validateExperimentConfig(cfg);
+        if (cfg instanceof Map) {
+            String verr = validateConfig((Map<String,Object>) cfg);
+            if (verr != null && !verr.isEmpty()) errs.add(verr);
+        }
+        return Map.of("ok", errs.isEmpty(), "errors", errs);
     }
 
     // Very small semver comparator: compares dot-separated integers, ignores qualifiers.
