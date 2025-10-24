@@ -12,7 +12,10 @@ playtics:
     bootstrap: localhost:9092
     topic: playtics.events_raw
     registryUrl: http://localhost:8081/apis/registry/v2
+    dlqTopic: playtics.deadletter
   auth:
     # 示例: apiKey->secret，生产请使用数据库/控制面
     keys:
       pk_test_example: sk_test_secret
+  ratelimit:
+    rpm: 600

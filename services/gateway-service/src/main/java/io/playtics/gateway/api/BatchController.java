@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.playtics.common.model.Event;
 import io.playtics.gateway.kafka.AvroPublisher;
+import io.playtics.gateway.kafka.DlqPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -20,7 +21,8 @@ public class BatchController {
 
     private final ObjectMapper om = new ObjectMapper();
     private final AvroPublisher publisher;
-    public BatchController(AvroPublisher publisher) { this.publisher = publisher; }
+    private final DlqPublisher dlq;
+    public BatchController(AvroPublisher publisher, DlqPublisher dlq) { this.publisher = publisher; this.dlq = dlq; }
 
     public static class BatchResponse {
         public List<String> accepted = new CopyOnWriteArrayList<>();
@@ -42,6 +44,7 @@ public class BatchController {
                     rej.put("event_id", e != null ? String.valueOf(e.eventId) : "");
                     rej.put("reason", "invalid_schema");
                     resp.rejected.add(rej);
+                    dlq.publish(e != null ? e.eventId : null, "invalid_schema", e == null ? null : toJsonSilently(e));
                     continue;
                 }
                 try { publisher.publish(e); resp.accepted.add(e.eventId); }
@@ -50,6 +53,7 @@ public class BatchController {
                     rej.put("event_id", e.eventId);
                     rej.put("reason", "kafka_error");
                     resp.rejected.add(rej);
+                    dlq.publish(e.eventId, "kafka_error", toJsonSilently(e));
                 }
             }
             return resp;
@@ -75,6 +79,10 @@ public class BatchController {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    private String toJsonSilently(Object o) {
+        try { return om.writeValueAsString(o); } catch (Exception e) { return null; }
     }
 
     private byte[] maybeGunzip(byte[] raw, String encoding) {
