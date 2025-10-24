@@ -72,6 +72,10 @@ ClickHouse 聚合（示例）
 - 转化：按曝光用户集合在窗口内统计转化事件（SQL 在 queries_experiment.sql）
  - 维度版视图：已提供包含 `platform/app_version/country` 维度的视图（`v_exp_exposures_by_day_dim`, `v_exp_conversion_24h_dim`, `v_exp_conversion_7d_dim`），可在 Superset 中建对应数据集进行按维度筛选或分组。
 
+配置校验
+- 推荐参考 JSON Schema：`schema/json/experiment-config.schema.json`
+- 当前控制台与服务端已做基础校验（variants 至少 2 个、权重非负且和>0、名称唯一、targeting/metrics 类型检查）；后续可引入 JSON Schema 校验以提升提示质量。
+
 仪表（Superset）
 - 每日曝光量（按 variant）
 - 转化率（按 variant）
