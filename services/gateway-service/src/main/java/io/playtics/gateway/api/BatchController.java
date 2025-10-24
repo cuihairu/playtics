@@ -7,6 +7,7 @@ import io.playtics.gateway.kafka.AvroPublisher;
 import io.playtics.gateway.kafka.DlqPublisher;
 import io.playtics.gateway.config.PropsPolicy;
 import io.playtics.gateway.config.JsonSchemaValidator;
+import io.playtics.gateway.config.PolicyService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -26,7 +27,8 @@ public class BatchController {
     private final DlqPublisher dlq;
     private final PropsPolicy propsPolicy;
     private final JsonSchemaValidator schemaValidator;
-    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy, JsonSchemaValidator schemaValidator) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; this.schemaValidator = schemaValidator; }
+    private final PolicyService policyService;
+    public BatchController(ObjectMapper om, AvroPublisher publisher, DlqPublisher dlq, PropsPolicy propsPolicy, JsonSchemaValidator schemaValidator, PolicyService policyService) { this.om = om; this.publisher = publisher; this.dlq = dlq; this.propsPolicy = propsPolicy; this.schemaValidator = schemaValidator; this.policyService = policyService; }
 
     public static class BatchResponse {
         public List<String> accepted = new CopyOnWriteArrayList<>();
@@ -55,6 +57,8 @@ public class BatchController {
                 clientIp = req.getRemoteAddress().getAddress().getHostAddress();
             }
             BatchResponse resp = new BatchResponse();
+            String apiKey = req.getHeaders().getFirst("x-api-key");
+            io.playtics.gateway.config.PolicyService.Policy p = policyService.getPolicy(apiKey);
             for (Event e : events) {
                 if (e == null || e.eventId == null || e.eventName == null || e.projectId == null || e.deviceId == null) {
                     HashMap<String, String> rej = new HashMap<>();
@@ -68,7 +72,13 @@ public class BatchController {
                 if (e.userAgent == null) e.userAgent = userAgent;
                 if (e.clientIp == null) e.clientIp = clientIp;
                 // props allowlist & depth clamp
-                if (e.props != null) e.props = propsPolicy.filter(e.props);
+                if (e.props != null) {
+                    if (p != null && p.propsAllowlist != null && !p.propsAllowlist.isEmpty()) {
+                        e.props = propsPolicy.filterWithAllowlist(e.props, p.propsAllowlist);
+                    } else {
+                        e.props = propsPolicy.filter(e.props);
+                    }
+                }
                 // size check per event
                 if (propsPolicy.exceedsEventLimit(e)) {
                     HashMap<String, String> rej = new HashMap<>();

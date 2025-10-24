@@ -1,6 +1,7 @@
 package io.playtics.gateway.security;
 
 import io.playtics.gateway.config.RateLimiterService;
+import io.playtics.gateway.config.PolicyService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,8 +15,9 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class RateLimitFilter implements WebFilter {
     private final RateLimiterService limiter;
+    private final PolicyService policies;
 
-    public RateLimitFilter(RateLimiterService limiter) { this.limiter = limiter; }
+    public RateLimitFilter(RateLimiterService limiter, PolicyService policies) { this.limiter = limiter; this.policies = policies; }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -25,8 +27,9 @@ public class RateLimitFilter implements WebFilter {
         if (apiKey == null || apiKey.isBlank()) apiKey = "anonymous";
         String ip = clientIp(exchange);
 
-        boolean okApi = limiter.allowApiKey(apiKey);
-        boolean okIp = limiter.allowIp(ip);
+        var p = policies.getPolicy(apiKey);
+        boolean okApi = (p != null && p.rpm != null) ? limiter.allowApiKey(apiKey, p.rpm) : limiter.allowApiKey(apiKey);
+        boolean okIp = (p != null && p.ipRpm != null) ? limiter.allowIp(ip, p.ipRpm) : limiter.allowIp(ip);
         if (!okApi || !okIp) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             exchange.getResponse().getHeaders().add(HttpHeaders.RETRY_AFTER, "60");

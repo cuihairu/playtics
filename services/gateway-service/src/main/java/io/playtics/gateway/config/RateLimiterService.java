@@ -22,6 +22,8 @@ public class RateLimiterService {
 
     public boolean allowApiKey(String apiKey) { return allow(bucketsApi, rpmApi, apiKey); }
     public boolean allowIp(String ip) { return allow(bucketsIp, rpmIp, ip); }
+    public boolean allowApiKey(String apiKey, int limitOverride) { return allow(bucketsApi, limitOverride, apiKey); }
+    public boolean allowIp(String ip, int limitOverride) { return allow(bucketsIp, limitOverride, ip); }
 
     private boolean allow(Map<String, Window> buckets, int limit, String key) {
         long minute = Instant.now().getEpochSecond() / 60L;

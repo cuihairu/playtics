@@ -32,6 +32,16 @@ public class PropsPolicy {
         return out;
     }
 
+    public Map<String, Object> filterWithAllowlist(Map<String, Object> props, List<String> allow) {
+        if (props == null || allow == null || allow.isEmpty()) return filter(props);
+        Set<String> al = new HashSet<>(allow);
+        Map<String, Object> out = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> e : props.entrySet()) {
+            if (al.contains(e.getKey())) out.put(e.getKey(), sanitize(e.getValue(), 0));
+        }
+        return out;
+    }
+
     private Object sanitize(Object v, int depth) {
         if (v == null) return null;
         if (depth >= 3) return null; // clamp depth
