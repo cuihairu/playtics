@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Build and test (selected modules)
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: '8.7'
+          arguments: |
+            --no-daemon
+            --stacktrace
+            :services:gateway-service:test
+            :jobs:flink:events-enrich-job:assemble
+            :jobs:flink:sessions-job:assemble
+            :jobs:flink:retention-job:assemble
+            :jobs:flink:funnels-job:assemble
+
+  build-web-sdk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdks/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci || npm i
+      - run: npm run build
