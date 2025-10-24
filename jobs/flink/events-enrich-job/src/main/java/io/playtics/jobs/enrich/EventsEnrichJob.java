@@ -118,11 +118,13 @@ public class EventsEnrichJob {
             Object pj = record.get("props_json");
             String baseProps = pj == null ? "{}" : pj.toString();
             String uaFamily = enrichers.uaFamily(userAgent);
-            if (uaFamily != null && !uaFamily.isEmpty()) {
-                row.props_json = mergeProps(baseProps, "ua_family", uaFamily);
-            } else {
-                row.props_json = baseProps;
-            }
+            String osFamily = enrichers.osFamily(userAgent);
+            String deviceClass = enrichers.deviceClass(userAgent);
+            String merged = baseProps;
+            if (uaFamily != null && !uaFamily.isEmpty()) merged = mergeProps(merged, "ua_family", uaFamily);
+            if (osFamily != null && !osFamily.isEmpty()) merged = mergeProps(merged, "os_family", osFamily);
+            if (deviceClass != null && !deviceClass.isEmpty()) merged = mergeProps(merged, "device_class", deviceClass);
+            row.props_json = merged;
             row.revenue_amount = BigDecimal.ZERO; // 表为非 Nullable，使用默认 0
             row.revenue_currency = "USD";
             return row;
@@ -272,6 +274,22 @@ public class EventsEnrichJob {
             try {
                 UserAgent parsed = uaa.parse(ua);
                 return parsed.getValue("AgentName");
+            } catch (Exception e) { return null; }
+        }
+
+        String osFamily(String ua) {
+            if (uaa == null || ua == null || ua.isEmpty()) return null;
+            try {
+                UserAgent parsed = uaa.parse(ua);
+                return parsed.getValue("OperatingSystemName");
+            } catch (Exception e) { return null; }
+        }
+
+        String deviceClass(String ua) {
+            if (uaa == null || ua == null || ua.isEmpty()) return null;
+            try {
+                UserAgent parsed = uaa.parse(ua);
+                return parsed.getValue("DeviceClass");
             } catch (Exception e) { return null; }
         }
     }
