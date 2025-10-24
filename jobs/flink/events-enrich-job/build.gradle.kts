@@ -10,6 +10,8 @@ dependencies {
   implementation("org.apache.avro:avro:1.11.3")
   implementation("io.apicurio:apicurio-registry-serdes-avro-serde:2.6.5.Final")
   implementation("com.clickhouse:clickhouse-jdbc:0.6.8")
+  implementation("com.maxmind.geoip2:geoip2:4.2.0")
+  implementation("nl.basjes.parse.useragent:yauaa:7.24")
 }
 
 tasks.withType<JavaCompile> { options.release.set(21) }

@@ -73,6 +73,8 @@ public class AvroPublisher {
         gr.put("platform", e.platform);
         gr.put("app_version", e.appVersion);
         gr.put("country", e.country);
+        gr.put("client_ip", e.clientIp);
+        gr.put("user_agent", e.userAgent);
         gr.put("revenue_amount", null);
         gr.put("revenue_currency", null);
         try {

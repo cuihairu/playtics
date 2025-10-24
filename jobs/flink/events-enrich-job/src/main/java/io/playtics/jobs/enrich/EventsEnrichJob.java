@@ -27,6 +27,16 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Duration;
 
+// Optional GeoIP & UA enrichment
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import nl.basjes.parse.useragent.UserAgent;
+import nl.basjes.parse.useragent.UserAgentAnalyzer;
+
 public class EventsEnrichJob {
     public static void main(String[] args) throws Exception {
         String bootstrap = System.getProperty("kafka.bootstrap", "localhost:9092");
@@ -79,6 +89,10 @@ public class EventsEnrichJob {
                 .keyBy(r -> String.valueOf(r.get("event_id")))
                 .process(new DedupFunction(DLQ));
 
+        // Optional enrichers
+        String mmdbPath = System.getProperty("geoip.mmdb", "");
+        final Enrichers enrichers = Enrichers.create(mmdbPath);
+
         var mapped = deduped.map((MapFunction<GenericRecord, EventRow>) record -> {
             EventRow row = new EventRow();
             row.project_id = str(record.get("project_id"));
@@ -91,7 +105,15 @@ public class EventsEnrichJob {
             row.session_id = nz(str(record.get("session_id")));
             row.platform = nz(str(record.get("platform")));
             row.app_version = nz(str(record.get("app_version")));
-            row.country = nz(str(record.get("country")));
+            String currentCountry = nz(str(record.get("country")));
+            String clientIp = nz(str(record.get("client_ip")));
+            String userAgent = nz(str(record.get("user_agent")));
+            // Enrich country if empty and IP present
+            if ((currentCountry == null || currentCountry.isEmpty()) && !clientIp.isEmpty()) {
+                String c = enrichers.countryByIp(clientIp);
+                if (c != null) currentCountry = c;
+            }
+            row.country = nz(currentCountry);
             Object pj = record.get("props_json");
             row.props_json = pj == null ? "{}" : pj.toString();
             row.revenue_amount = BigDecimal.ZERO; // 表为非 Nullable，使用默认 0
@@ -200,5 +222,50 @@ public class EventsEnrichJob {
             String id = r != null && r.get("event_id") != null ? r.get("event_id").toString() : "";
             return "{\"event_id\":\"" + id + "\",\"reason\":\"" + reason + "\"}";
         } catch (Exception e) { return "{\"event_id\":\"\",\"reason\":\""+reason+"\"}"; }
+    }
+
+    // Enricher holder
+    static class Enrichers {
+        private final DatabaseReader geoip;
+        private final UserAgentAnalyzer uaa;
+
+        private Enrichers(DatabaseReader geoip, UserAgentAnalyzer uaa) {
+            this.geoip = geoip; this.uaa = uaa;
+        }
+
+        static Enrichers create(String mmdbPath) {
+            DatabaseReader dr = null; UserAgentAnalyzer uaa = null;
+            try {
+                if (mmdbPath != null && !mmdbPath.isBlank() && new File(mmdbPath).exists()) {
+                    dr = new DatabaseReader.Builder(new File(mmdbPath)).build();
+                }
+            } catch (IOException e) { dr = null; }
+            try {
+                uaa = UserAgentAnalyzer.newBuilder().hideMatcherLoadStats().withCache(10000).build();
+            } catch (Exception e) { uaa = null; }
+            return new Enrichers(dr, uaa);
+        }
+
+        String countryByIp(String ip) {
+            if (geoip == null) return null;
+            try {
+                InetAddress addr = InetAddress.getByName(ip);
+                CityResponse resp = geoip.city(addr);
+                if (resp.getCountry() != null && resp.getCountry().getIsoCode() != null) {
+                    return resp.getCountry().getIsoCode();
+                }
+                return null;
+            } catch (IOException | GeoIp2Exception e) {
+                return null;
+            }
+        }
+
+        String uaFamily(String ua) {
+            if (uaa == null || ua == null || ua.isEmpty()) return null;
+            try {
+                UserAgent parsed = uaa.parse(ua);
+                return parsed.getValue("AgentName");
+            } catch (Exception e) { return null; }
+        }
     }
 }

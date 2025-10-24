@@ -33,10 +33,19 @@ public class BatchController {
     @PostMapping(value = "/batch", consumes = {MediaType.APPLICATION_JSON_VALUE, "application/x-ndjson"})
     public Mono<BatchResponse> batch(@RequestHeader(value = "content-encoding", required = false) String encoding,
                                      @RequestHeader(value = "content-type", required = false) String contentType,
+                                     org.springframework.http.server.reactive.ServerHttpRequest req,
                                      @RequestBody Mono<byte[]> bodyBytesMono) {
         return bodyBytesMono.map(bytes -> {
             byte[] raw = maybeGunzip(bytes, encoding);
             List<Event> events = parseEvents(raw, contentType);
+            String userAgent = req.getHeaders().getFirst("user-agent");
+            String xff = req.getHeaders().getFirst("x-forwarded-for");
+            String clientIp = null;
+            if (xff != null && !xff.isEmpty()) {
+                clientIp = xff.split(",")[0].trim();
+            } else if (req.getRemoteAddress() != null) {
+                clientIp = req.getRemoteAddress().getAddress().getHostAddress();
+            }
             BatchResponse resp = new BatchResponse();
             for (Event e : events) {
                 if (e == null || e.eventId == null || e.eventName == null || e.projectId == null || e.deviceId == null) {
@@ -47,6 +56,9 @@ public class BatchController {
                     dlq.publish(e != null ? e.eventId : null, "invalid_schema", e == null ? null : toJsonSilently(e));
                     continue;
                 }
+                // enrich request-derived fields
+                if (e.userAgent == null) e.userAgent = userAgent;
+                if (e.clientIp == null) e.clientIp = clientIp;
                 try { publisher.publish(e); resp.accepted.add(e.eventId); }
                 catch (Exception ex) {
                     HashMap<String, String> rej = new HashMap<>();

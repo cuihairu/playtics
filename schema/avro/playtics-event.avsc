@@ -14,6 +14,8 @@
     {"name": "platform", "type": ["null","string"], "default": null},
     {"name": "app_version", "type": ["null","string"], "default": null},
     {"name": "country", "type": ["null","string"], "default": null},
+    {"name": "client_ip", "type": ["null","string"], "default": null},
+    {"name": "user_agent", "type": ["null","string"], "default": null},
     {"name": "revenue_amount", "type": ["null", {"type":"bytes","logicalType":"decimal","precision":18,"scale":4}], "default": null},
     {"name": "revenue_currency", "type": ["null","string"], "default": null},
     {"name": "props_json", "type": ["null","string"], "default": null}
