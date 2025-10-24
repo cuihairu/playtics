@@ -381,7 +381,8 @@ async function validateExperimentRemote(){
   if (!r.ok) { showExpErr(['validation failed']); return; }
   const js = await r.json(); showExpErr(js.errors||[]);
 }
-function showExpErr(errs){ const d=document.getElementById('exp_err'); if (!d) return; if (!errs||errs.length===0){ d.textContent=''; return; } d.textContent=errs.join('; '); }
+function showExpErr(errs){ const d=document.getElementById('exp_err'); if (!d) return; if (!errs||errs.length===0){ d.textContent=''; setExpBorder(''); return; } d.textContent=errs.join('; '); setExpBorder('red'); }
+function setExpBorder(color){ const el=document.getElementById('exp_config'); if(!el) return; el.style.borderColor = color||''; el.style.borderWidth = color? '2px':'1px'; el.style.borderStyle = 'solid'; }
 
 function toggleAll(cb){ document.querySelectorAll('#keys_tbody input.sel').forEach(x=>x.checked=cb.checked); }
 async function deleteSelected(){
@@ -409,3 +410,23 @@ async function exportCsv(){
 </script>
 </body>
 </html>
+// ----- Debounced remote validation for experiment config -----
+let EXP_VAL_TIMER = null;
+const EXP_VAL_DELAY = 500;
+document.getElementById('exp_config').addEventListener('input', ()=>{
+  // local quick checks first
+  try {
+    const cfgTxt = document.getElementById('exp_config').value;
+    const cfg = cfgTxt ? JSON.parse(cfgTxt) : {};
+    const verr = validateExperimentConfig(cfg);
+    showExpErr(verr ? [verr] : []);
+    setExpBorder(verr ? 'red' : '');
+    // debounce remote validation if local ok
+    if (!verr) {
+      if (EXP_VAL_TIMER) clearTimeout(EXP_VAL_TIMER);
+      EXP_VAL_TIMER = setTimeout(()=>{ validateExperimentRemote().catch(()=>{}); }, EXP_VAL_DELAY);
+    }
+  } catch(e) {
+    showExpErr(['invalid config JSON']); setExpBorder('red');
+  }
+});
