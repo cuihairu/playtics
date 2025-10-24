@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://playtics.io/schemas/experiment-config.schema.json",
+  "title": "Playtics Experiment Config",
+  "type": "object",
+  "properties": {
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "weight": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["name"],
+        "additionalProperties": true
+      }
+    },
+    "targeting": {
+      "type": "object",
+      "properties": {
+        "platform": { "type": "array", "items": { "type": "string" } },
+        "appVersionMin": { "type": "string" },
+        "appVersionMax": { "type": "string" },
+        "countries": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "primary": { "type": "string" },
+        "secondary": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["variants"],
+  "additionalProperties": true
+}
