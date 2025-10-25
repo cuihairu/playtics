@@ -55,3 +55,34 @@ Headers
 
 错误码（示例）
 - `invalid_api_key` `invalid_signature` `too_many_requests` `payload_too_large` `invalid_schema` `internal_error`
+
+错误码与示例
+- `invalid_api_key`：API Key 无效。
+- `invalid_signature`：HMAC 签名无效，或 `x-signature` 解析失败。
+- `signature_expired`：HMAC 时间窗超出（默认 300s）。
+- `too_many_requests`：命中限流（返回头含 `retry-after` 秒）。
+- `payload_too_large`：请求体（解压后）超过上限（默认 1MB）。
+- `invalid_schema`：单个事件不符合 JSON Schema（长度/类型/字段缺失等）。
+- `internal_error`：服务器内部错误。
+
+请求/响应示例（NDJSON）
+请求头：
+```
+POST /v1/batch
+content-type: application/x-ndjson
+x-api-key: pk_test_xxx
+content-encoding: gzip
+```
+请求体（两行）：
+```
+{"event_id":"01JE2E0001","event_name":"level_start","project_id":"p1","device_id":"d1","ts_client":1730000000000}
+{"event_id":"01JE2E0002","event_name":"level_complete","project_id":"p1","device_id":"d1","ts_client":1730000001000}
+```
+成功响应：
+```json
+{ "accepted": ["01JE2E0001","01JE2E0002"], "rejected": [], "next_hint_ms": 3000 }
+```
+部分失败响应：
+```json
+{ "accepted": ["01JE2E0001"], "rejected": [{"event_id":"01BAD","reason":"invalid_schema"}], "next_hint_ms": 3000 }
+```

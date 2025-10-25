@@ -389,7 +389,33 @@ function showExpErr(errs){
   d.innerHTML = items.join(''); setExpBorder('red'); if (btn) btn.disabled=true;
 }
 function setExpBorder(color){ const el=document.getElementById('exp_config'); if(!el) return; el.style.borderColor = color||''; el.style.borderWidth = color? '2px':'1px'; el.style.borderStyle = 'solid'; }
-function jumpToPath(path){ try { const el=document.getElementById('exp_config'); const txt=el.value; if(!txt) return; let token=String(path||'').replace(/^\$\.?/,''); const parts=token.split('.'); let last=parts[parts.length-1]; last=last.replace(/\[\d+\]/g,''); last=last.replace(/^\[(.+)\]$/,'$1'); if(!last) return; const re=new RegExp('"'+last.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'"\\s*:'); const m=re.exec(txt); if(m&&typeof m.index==='number'){ el.focus(); el.setSelectionRange(m.index, Math.min(m.index+m[0].length, txt.length)); } else { el.focus(); } } catch{} }
+function jumpToPath(path){
+  try {
+    const el = document.getElementById('exp_config'); const txt = el.value; if (!txt) return;
+    // Normalize path like $.variants[1].weight
+    let p = String(path||'').replace(/^\$\.?/, '');
+    // Try to progressively find tokens; fall back to last token
+    const segs = p.split('.');
+    const esc = (s)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    let idx = 0; let found = -1;
+    for (let i=0;i<segs.length;i++){
+      let seg = segs[i];
+      // keep raw [n] for arrays but match on property name before index
+      const name = seg.replace(/\[(\d+)\]/g,'');
+      const re = new RegExp('"'+esc(name)+'"\\s*:');
+      const m = re.exec(txt.slice(idx));
+      if (m && typeof m.index === 'number') { found = idx + m.index; idx = found + m[0].length; } else { break; }
+    }
+    if (found < 0) {
+      // fallback: last token only
+      const last = segs[segs.length-1].replace(/\[(\d+)\]/g,'');
+      const re = new RegExp('"'+esc(last)+'"\\s*:');
+      const m = re.exec(txt);
+      if (m && typeof m.index === 'number') { found = m.index; }
+    }
+    if (found >= 0) { el.focus(); el.setSelectionRange(found, Math.min(found+20, txt.length)); } else { el.focus(); }
+  } catch {}
+}
 
 function toggleAll(cb){ document.querySelectorAll('#keys_tbody input.sel').forEach(x=>x.checked=cb.checked); }
 async function deleteSelected(){
