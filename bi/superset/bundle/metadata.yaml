@@ -48,6 +48,8 @@ bundle:
     - path: charts/exp_cr_24h_dim_platform_fast.yaml
     - path: charts/exp_cr_24h_dim_country_fast.yaml
     - path: charts/exp_cr_24h_dim_app_version_fast.yaml
+    - path: charts/exp_exposures_dim_table_fast.yaml
+    - path: charts/exp_cr_24h_dim_table_fast.yaml
   dashboards:
     - path: dashboards/playtics_overview.yaml
     - path: dashboards/playtics_experiments.yaml

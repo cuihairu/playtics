@@ -1,0 +1,21 @@
+slice_name: Experiment CR 24h Detail (fast)
+viz_type: table
+params:
+  datasource: fb222222-2222-4222-8222-222222222222
+  viz_type: table
+  all_columns:
+    - exposure_date
+    - exp
+    - variant
+    - platform
+    - app_version
+    - country
+    - exposed_users
+    - converted_users
+    - cr_24h
+  server_pagination: true
+  row_limit: 500
+  order_by_cols:
+    - '["exposure_date", false]'
+  time_range: Last 90 days
+uuid: fc222222-2222-4222-8222-222222222222

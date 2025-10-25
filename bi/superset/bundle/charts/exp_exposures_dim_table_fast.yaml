@@ -1,0 +1,20 @@
+slice_name: Experiment Exposures Detail (fast)
+viz_type: table
+params:
+  datasource: fb111111-1111-4111-8111-111111111111
+  viz_type: table
+  all_columns:
+    - event_date
+    - exp
+    - variant
+    - platform
+    - app_version
+    - country
+    - exposures
+    - users
+  server_pagination: true
+  row_limit: 500
+  order_by_cols:
+    - '["event_date", false]'
+  time_range: Last 90 days
+uuid: fc111111-1111-4111-8111-111111111111
