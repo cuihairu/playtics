@@ -15,5 +15,5 @@ params:
       column: events
   groupby:
     - event_name
-  time_range: No filter
+  time_range: Last 90 days
 uuid: 8e9a5bcd-b595-4cad-e5d4-5ca1df7fa705

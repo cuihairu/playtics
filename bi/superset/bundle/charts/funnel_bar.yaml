@@ -16,5 +16,5 @@ params:
     - label: sum_completed
       expressionType: SQL
       sqlExpression: sum(completed)
-  time_range: No filter
+  time_range: Last 90 days
 uuid: bfcd8ef0-e8c8-40d0-18a7-8fd410a2da08

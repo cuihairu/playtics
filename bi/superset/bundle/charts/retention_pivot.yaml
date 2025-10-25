@@ -12,5 +12,5 @@ params:
     - label: sum_users
       expressionType: SQL
       sqlExpression: sum(users)
-  time_range: No filter
+  time_range: Last 90 days
 uuid: afbc7def-d7b7-4ecf-07f6-7ec3ff91c907

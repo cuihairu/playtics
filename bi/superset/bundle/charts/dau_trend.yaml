@@ -11,5 +11,5 @@ params:
       expressionType: SQL
       sqlExpression: sum(dau)
   groupby: []
-  time_range: No filter
+  time_range: Last 90 days
 uuid: 9fab6cde-c6a6-4dbe-f6e5-6db2ef80b806
