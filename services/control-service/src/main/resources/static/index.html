@@ -128,6 +128,7 @@
       <div id="exp_err" style="color:#c00; margin-left:4px;"></div>
       <br/>
       <button onclick="validateExperimentRemote()">Validate</button>
+      <span id="exp_status" style="margin-left:8px;color:#555"></span>
       <button id="exp_save" onclick="upsertExperiment()">Save</button>
     </div>
     <div>
@@ -379,15 +380,21 @@ async function validateExperimentRemote(){
   let cfg={}; try { const txt=document.getElementById('exp_config').value; cfg = txt?JSON.parse(txt):{}; } catch(e){ showExpErr(['invalid config JSON']); return; }
   const r = await fetch('/api/experiments/validate',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify({config:cfg})});
   if (!r.ok) { showExpErr(['validation failed']); return; }
-  const js = await r.json(); EXP_LAST_REMOTE_OK = !js.errors || js.errors.length===0; showExpErr(js.errors||[]);
+  const js = await r.json();
+  EXP_LAST_REMOTE_OK = !js.errors || js.errors.length===0;
+  showExpErr(js.errors||[]);
 }
 function showExpErr(errs){
   const d=document.getElementById('exp_err'); if (!d) return;
   const btn=document.getElementById('exp_save');
-  if (!errs || errs.length===0){ d.innerHTML=''; setExpBorder(''); if (btn) btn.disabled=!EXP_LAST_REMOTE_OK; return; }
+  const st=document.getElementById('exp_status');
+  if (!errs || errs.length===0){ d.innerHTML=''; setExpBorder(''); if (btn) btn.disabled=!EXP_LAST_REMOTE_OK; if(st) st.textContent = EXP_LAST_REMOTE_OK? 'Valid ✓':'Pending…'; if(st) st.style.color = EXP_LAST_REMOTE_OK? '#0a0':'#555'; return; }
   const items = errs.map(e=>{ const s=String(e); const idx=s.indexOf(':'); if(idx>0){ const path=s.slice(0,idx).trim(); const msg=s.slice(idx+1).trim(); return `<div><a href=\"#\" onclick=\"jumpToPath('${'${'}path.replace(/'/g, "\\'")}'}');return false;\">${'${'}path}</a>: ${'${'}msg}</div>`;} return `<div>${'${'}s}</div>`; });
-  d.innerHTML = items.join(''); setExpBorder('red'); if (btn) btn.disabled=true;
+  d.innerHTML = `<div style=\"margin-bottom:4px\"><button onclick=\"copyErrors()\">Copy Errors</button> <a href=\"#\" onclick=\"toggleErrors();return false;\" id=\"exp_err_t\">Hide</a></div>` + items.join('');
+  setExpBorder('red'); if (btn) btn.disabled=true; if(st){ st.textContent='Invalid ✗'; st.style.color='#a00'; }
 }
+function copyErrors(){ try { const d=document.getElementById('exp_err'); if (!d) return; const txt=d.innerText || d.textContent; navigator.clipboard.writeText(txt); } catch{} }
+function toggleErrors(){ const d=document.getElementById('exp_err'); const t=document.getElementById('exp_err_t'); if(!d||!t) return; const vis = d.getAttribute('data-vis')!=='0'; d.setAttribute('data-vis', vis?'0':'1'); Array.from(d.querySelectorAll('div')).forEach((el,i)=>{ if(i>0) el.style.display = vis?'none':''; }); t.textContent = vis? 'Show':'Hide'; }
 function setExpBorder(color){ const el=document.getElementById('exp_config'); if(!el) return; el.style.borderColor = color||''; el.style.borderWidth = color? '2px':'1px'; el.style.borderStyle = 'solid'; }
 function jumpToPath(path){
   try {
