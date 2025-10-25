@@ -164,12 +164,24 @@ metadata:
       defaultDataMask: {extraFormData: {}, filterState: {}}
       cascadeParentIds: []
       controlValues: {enableEmptyFilter: true, defaultToFirstItem: false, multiSelect: true}
+    - id: filter_time
+      name: Time Range
+      type: NATIVE_FILTER
+      filterType: NATIVE_FILTER_TIME
+      targets: []
+      defaultDataMask:
+        extraFormData:
+          time_range: Last 90 days
+        filterState: {value: Last 90 days}
+      cascadeParentIds: []
+      controlValues: {}
   filter_scopes:
     filter_project: {scope: {rootPath: [], excluded: []}, immune: []}
     filter_exp: {scope: {rootPath: [], excluded: []}, immune: []}
     filter_platform: {scope: {rootPath: [], excluded: []}, immune: []}
     filter_country: {scope: {rootPath: [], excluded: []}, immune: []}
     filter_app_version: {scope: {rootPath: [], excluded: []}, immune: []}
+    filter_time: {scope: {rootPath: [], excluded: []}, immune: []}
 uuid: e5555555-5555-4555-8555-555555555555
 version: 1.0.0
   CHART-e8888888-8888-4888-8888-888888888888:
