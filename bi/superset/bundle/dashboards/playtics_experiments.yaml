@@ -228,3 +228,30 @@ version: 1.0.0
       width: 12
       height: 15
       sliceName: Experiment CR 24h by App Version (Top 10)
+  CHART-fa444444-4444-4444-8444-444444444444:
+    type: CHART
+    id: CHART-fa444444-4444-4444-8444-444444444444
+    children: []
+    meta:
+      chartUuid: fa444444-4444-4444-8444-444444444444
+      width: 24
+      height: 15
+      sliceName: Experiment Exposures (fast)
+  CHART-fa555555-5555-4555-8555-555555555555:
+    type: CHART
+    id: CHART-fa555555-5555-4555-8555-555555555555
+    children: []
+    meta:
+      chartUuid: fa555555-5555-4555-8555-555555555555
+      width: 12
+      height: 15
+      sliceName: Experiment CR 24h (fast)
+  CHART-fa666666-6666-4666-8666-666666666666:
+    type: CHART
+    id: CHART-fa666666-6666-4666-8666-666666666666
+    children: []
+    meta:
+      chartUuid: fa666666-6666-4666-8666-666666666666
+      width: 12
+      height: 15
+      sliceName: Experiment CR 7d (fast)
