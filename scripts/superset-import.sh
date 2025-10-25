@@ -4,10 +4,8 @@ ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT_DIR"
 
 BUNDLE="bi/superset/playtics_dashboard_bundle.zip"
-if [ ! -f "$BUNDLE" ]; then
-  echo "Bundle not found, building..." >&2
-  (cd bi/superset && ./build_bundle.sh)
-fi
+# Always rebuild bundle to pick up latest datasets/charts/dashboards
+(cd bi/superset && ./build_bundle.sh)
 
 cd infra
 CID=$(docker compose ps -q superset || true)
