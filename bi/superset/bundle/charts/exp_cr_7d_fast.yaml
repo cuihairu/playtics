@@ -11,6 +11,5 @@ params:
     - label: avg_cr_7d
       expressionType: SQL
       sqlExpression: avg(cr_7d)
-  time_range: No filter
+  time_range: Last 90 days
 uuid: fa666666-6666-4666-8666-666666666666
-

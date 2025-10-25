@@ -7,11 +7,16 @@ params:
   time_grain_sqla: P1D
   groupby:
     - country
-  row_limit: 10
   metrics:
     - label: avg_cr_24h
       expressionType: SQL
       sqlExpression: avg(cr_24h)
-  time_range: No filter
+  series_limit: 10
+  series_limit_metric:
+    label: sum_exposed
+    expressionType: SQL
+    sqlExpression: sum(exposed_users)
+  order_desc: true
+  emit_filter: true
+  time_range: Last 90 days
 uuid: fb888888-8888-4888-8888-888888888888
-

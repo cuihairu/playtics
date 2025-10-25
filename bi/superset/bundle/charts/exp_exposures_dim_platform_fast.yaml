@@ -11,6 +11,12 @@ params:
     - label: sum_exposures
       expressionType: SQL
       sqlExpression: sum(exposures)
-  time_range: No filter
+  series_limit: 10
+  series_limit_metric:
+    label: sum_exposures
+    expressionType: SQL
+    sqlExpression: sum(exposures)
+  order_desc: true
+  emit_filter: true
+  time_range: Last 90 days
 uuid: fb444444-4444-4444-8444-444444444444
-

@@ -11,6 +11,12 @@ params:
     - label: avg_cr_24h
       expressionType: SQL
       sqlExpression: avg(cr_24h)
-  time_range: No filter
+  series_limit: 10
+  series_limit_metric:
+    label: sum_exposed
+    expressionType: SQL
+    sqlExpression: sum(exposed_users)
+  order_desc: true
+  emit_filter: true
+  time_range: Last 90 days
 uuid: fb777777-7777-4777-8777-777777777777
-

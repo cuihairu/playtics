@@ -11,6 +11,5 @@ params:
     - label: sum_exposures
       expressionType: SQL
       sqlExpression: sum(exposures)
-  time_range: No filter
+  time_range: Last 90 days
 uuid: fa444444-4444-4444-8444-444444444444
-
