@@ -1,0 +1,17 @@
+slice_name: Experiment Exposures by Country (fast)
+viz_type: echarts_timeseries_bar
+params:
+  datasource: fb111111-1111-4111-8111-111111111111
+  viz_type: echarts_timeseries_bar
+  x_axis: event_date
+  time_grain_sqla: P1D
+  groupby:
+    - country
+  row_limit: 10
+  metrics:
+    - label: sum_exposures
+      expressionType: SQL
+      sqlExpression: sum(exposures)
+  time_range: No filter
+uuid: fb555555-5555-4555-8555-555555555555
+
