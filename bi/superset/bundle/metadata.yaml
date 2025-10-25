@@ -15,6 +15,16 @@ bundle:
     - path: datasets/v_exp_conversion_same_day.yaml
     - path: datasets/v_exp_conversion_24h.yaml
     - path: datasets/v_exp_conversion_7d.yaml
+    # fast (no-dim) datasets
+    - path: datasets/v_exp_exposures_by_day_fast.yaml
+    - path: datasets/v_exp_conversion_24h_fast.yaml
+    - path: datasets/v_exp_conversion_7d_fast.yaml
+    # dim datasets (raw + fast)
+    - path: datasets/v_exp_exposures_by_day_dim.yaml
+    - path: datasets/v_exp_conversion_24h_dim.yaml
+    - path: datasets/v_exp_exposures_by_day_dim_fast.yaml
+    - path: datasets/v_exp_conversion_24h_dim_fast.yaml
+    - path: datasets/v_exp_conversion_7d_dim_fast.yaml
   charts:
     - path: charts/events_trend.yaml
     - path: charts/dau_trend.yaml
@@ -27,6 +37,17 @@ bundle:
     - path: charts/exp_conversion_rate.yaml
     - path: charts/exp_conversion_24h.yaml
     - path: charts/exp_conversion_7d.yaml
+    # fast (no-dim) charts
+    - path: charts/exp_exposures_trend_fast.yaml
+    - path: charts/exp_cr_24h_fast.yaml
+    - path: charts/exp_cr_7d_fast.yaml
+    # dim fast charts
+    - path: charts/exp_exposures_dim_platform_fast.yaml
+    - path: charts/exp_exposures_dim_country_fast.yaml
+    - path: charts/exp_exposures_dim_app_version_fast.yaml
+    - path: charts/exp_cr_24h_dim_platform_fast.yaml
+    - path: charts/exp_cr_24h_dim_country_fast.yaml
+    - path: charts/exp_cr_24h_dim_app_version_fast.yaml
   dashboards:
     - path: dashboards/playtics_overview.yaml
     - path: dashboards/playtics_experiments.yaml
