@@ -36,3 +36,7 @@ ClickHouse 查询侧（建议）
 - 导入实验 MVs：`schema/sql/clickhouse/schema_experiments_mv.sql`
 - 导入视图：`schema/sql/clickhouse/queries_experiment.sql`
 - 使用 `clickhouse-benchmark` 对 `v_exp_conversion_24h(_dim)`/`v_exp_conversion_7d(_dim)` 与对应基于 MV 的 Join 查询进行评估，视数据规模选择是否切换到基于 `exp_exposure_users` 与 `exp_first_level_complete` 的 Join
+
+日级预聚合（推荐）
+- 导入 `schema/sql/clickhouse/schema_experiments_daily_mv.sql`，将曝光与 24h/7d 转化按日/实验/variant 预聚合，显著降低大范围 Join 成本。
+- 快视图优先：在 Superset 中使用 `*_fast` 或日级表对应的数据集/图表（MV-backed）支撑大数据量仪表盘。

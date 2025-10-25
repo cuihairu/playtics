@@ -1,0 +1,27 @@
+database_uuid: 9d3f2d6d-1c4f-4f2e-8d55-5a7b9c0c1a01
+schema: default
+table_name: v_exp_exposures_by_day_fast
+description: Experiment exposures per day by variant (fast, MV-backed)
+owners: []
+uuid: fa111111-1111-4111-8111-111111111111
+columns:
+  - column_name: project_id
+    is_dttm: false
+  - column_name: event_date
+    is_dttm: true
+  - column_name: exp
+    is_dttm: false
+  - column_name: variant
+    is_dttm: false
+  - column_name: exposures
+    is_dttm: false
+  - column_name: users
+    is_dttm: false
+metrics:
+  - metric_name: sum_exposures
+    expression: sum(exposures)
+    metric_type: numeric
+  - metric_name: sum_users
+    expression: sum(users)
+    metric_type: numeric
+

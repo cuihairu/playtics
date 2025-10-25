@@ -8,6 +8,8 @@
     section { margin-bottom: 24px; }
     input, button, textarea { padding: 6px; margin: 4px; }
     pre { background: #f6f8fa; padding: 8px; }
+    @keyframes flashBorder { 0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.6);} 100%{ box-shadow: 0 0 0 8px rgba(255,0,0,0);} }
+    .flash { animation: flashBorder 0.8s ease-out; }
   </style>
 </head>
 <body>
@@ -420,7 +422,8 @@ function jumpToPath(path){
       const m = re.exec(txt);
       if (m && typeof m.index === 'number') { found = m.index; }
     }
-    if (found >= 0) { el.focus(); el.setSelectionRange(found, Math.min(found+20, txt.length)); } else { el.focus(); }
+    if (found >= 0) { el.focus(); el.setSelectionRange(found, Math.min(found+20, txt.length)); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    else { el.focus(); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
   } catch {}
 }
 

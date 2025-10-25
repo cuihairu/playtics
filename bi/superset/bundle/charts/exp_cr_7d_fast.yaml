@@ -1,0 +1,16 @@
+slice_name: Experiment CR 7d (fast)
+viz_type: echarts_timeseries_line
+params:
+  datasource: fa333333-3333-4333-8333-333333333333
+  viz_type: echarts_timeseries_line
+  x_axis: exposure_date
+  time_grain_sqla: P1D
+  groupby:
+    - variant
+  metrics:
+    - label: avg_cr_7d
+      expressionType: SQL
+      sqlExpression: avg(cr_7d)
+  time_range: No filter
+uuid: fa666666-6666-4666-8666-666666666666
+
