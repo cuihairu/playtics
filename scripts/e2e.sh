@@ -85,7 +85,9 @@ if curl -fsS "http://localhost:8123/?query=SELECT%201" >/dev/null 2>&1; then
   # Quick verification queries for fast views (will be 0 if no data yet)
   V1=$(curl -fsS "http://localhost:8123/?query=SELECT%20count()%20FROM%20v_exp_exposures_by_day_fast%20LIMIT%201" || echo 0)
   V2=$(curl -fsS "http://localhost:8123/?query=SELECT%20count()%20FROM%20v_exp_exposures_by_day_dim_fast%20LIMIT%201" || echo 0)
-  echo "Fast view counts: exposures_by_day_fast=$V1, exposures_by_day_dim_fast=$V2"
+  V3=$(curl -fsS "http://localhost:8123/?query=SELECT%20count()%20FROM%20v_exp_conversion_24h_fast%20LIMIT%201" || echo 0)
+  V4=$(curl -fsS "http://localhost:8123/?query=SELECT%20count()%20FROM%20v_exp_conversion_24h_dim_fast%20LIMIT%201" || echo 0)
+  echo "Fast view counts: exposures_fast=$V1, exposures_dim_fast=$V2, conv24h_fast=$V3, conv24h_dim_fast=$V4"
 else
   echo "ClickHouse HTTP not reachable; skip applying MVs"
 fi

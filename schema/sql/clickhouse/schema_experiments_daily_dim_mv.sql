@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS exp_daily_exposures_dim
 )
 ENGINE = SummingMergeTree
 PARTITION BY (project_id, toYYYYMM(event_date))
-ORDER BY (project_id, event_date, exp, variant, platform, app_version, country);
+ORDER BY (project_id, event_date, exp, variant, platform, app_version, country)
+TTL event_date + INTERVAL 400 DAY DELETE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_exp_daily_exposures_dim
 TO exp_daily_exposures_dim AS
@@ -46,7 +47,9 @@ CREATE TABLE IF NOT EXISTS exp_daily_conv_24h_dim
   cr_24h Float32
 )
 ENGINE = ReplacingMergeTree
-ORDER BY (project_id, exposure_date, exp, variant, platform, app_version, country);
+PARTITION BY (project_id, toYYYYMM(exposure_date))
+ORDER BY (project_id, exposure_date, exp, variant, platform, app_version, country)
+TTL exposure_date + INTERVAL 400 DAY DELETE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_exp_daily_conv_24h_dim
 TO exp_daily_conv_24h_dim AS
@@ -84,7 +87,9 @@ CREATE TABLE IF NOT EXISTS exp_daily_conv_7d_dim
   cr_7d Float32
 )
 ENGINE = ReplacingMergeTree
-ORDER BY (project_id, exposure_date, exp, variant, platform, app_version, country);
+PARTITION BY (project_id, toYYYYMM(exposure_date))
+ORDER BY (project_id, exposure_date, exp, variant, platform, app_version, country)
+TTL exposure_date + INTERVAL 400 DAY DELETE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_exp_daily_conv_7d_dim
 TO exp_daily_conv_7d_dim AS
@@ -106,4 +111,3 @@ SELECT e.project_id,
 FROM exp_exposure_users e
 LEFT JOIN conv c ON c.project_id=e.project_id AND c.uid=e.uid
 GROUP BY e.project_id, exposure_date, e.exp, e.variant, e.platform, e.app_version, e.country;
-

@@ -79,3 +79,14 @@ ClickHouse 查询侧（建议）
 实践建议
 - 仪表盘优先使用 `*_fast` 或 daily/daily-dim；只在必要时回落到 raw。
 - 对于高并发交互筛选，考虑限制时间窗口（例如最近 30/90 天）与维度 Top-N 以避免扫描过多分区。
+
+分区与 TTL 建议（ClickHouse）
+- 分区：
+  - 原始事件与曝光用户表按 `(project_id, toYYYYMM(ts))` 分区；
+  - 日级表按 `(project_id, toYYYYMM(day))` 分区（如 `event_date` / `exposure_date`）。
+- TTL：可按 400 天或业务需要设置，例如：
+  - `TTL event_date + INTERVAL 400 DAY DELETE`（曝光日表）
+  - `TTL exposure_date + INTERVAL 400 DAY DELETE`（转化日表）
+- 引擎选择：
+  - 曝光日表 `SummingMergeTree`（便于累加）；
+  - 转化日表 `ReplacingMergeTree` 或 `SummingMergeTree`（数据幂等写入时优先 Summing；否则用 Replacing）。
