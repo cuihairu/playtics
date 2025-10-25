@@ -388,22 +388,12 @@ async function validateExperimentRemote(){
 }
 function showExpErr(errs){
   const d=document.getElementById('exp_err'); if (!d) return;
+  const btn=document.getElementById('exp_save');
   const st=document.getElementById('exp_status');
-  if (!errs || errs.length===0){
-    d.innerHTML='';
-    setExpBorder('');
-    if (st) {
-      st.textContent = EXP_LAST_REMOTE_OK ? 'Valid ✓' : 'Pending…';
-      st.style.color = EXP_LAST_REMOTE_OK ? '#0a0' : '#555';
-    }
-    if (typeof updateExpSaveState === 'function') updateExpSaveState();
-    return;
-  }
-  const items = errs.map(e=>{ const s=String(e); const idx=s.indexOf(':'); if(idx>0){ const path=s.slice(0,idx).trim(); const msg=s.slice(idx+1).trim(); return `<div><a href=\"#\" onclick=\"jumpToPath('${'${'}path.replace(/'/g, "\\'"}')}');return false;\">${'${'}path}</a>: ${'${'}msg}</div>`;} return `<div>${'${'}s}</div>`; });
+  if (!errs || errs.length===0){ d.innerHTML=''; setExpBorder(''); if (btn) btn.disabled=!EXP_LAST_REMOTE_OK; if(st) st.textContent = EXP_LAST_REMOTE_OK? 'Valid ✓':'Pending…'; if(st) st.style.color = EXP_LAST_REMOTE_OK? '#0a0':'#555'; return; }
+  const items = errs.map(e=>{ const s=String(e); const idx=s.indexOf(':'); if(idx>0){ const path=s.slice(0,idx).trim(); const msg=s.slice(idx+1).trim(); return `<div><a href=\"#\" onclick=\"jumpToPath('${'${'}path.replace(/'/g, "\\'")}'}');return false;\">${'${'}path}</a>: ${'${'}msg}</div>`;} return `<div>${'${'}s}</div>`; });
   d.innerHTML = `<div style=\"margin-bottom:4px\"><button onclick=\"copyErrors()\">Copy Errors</button> <a href=\"#\" onclick=\"toggleErrors();return false;\" id=\"exp_err_t\">Hide</a></div>` + items.join('');
-  setExpBorder('red');
-  const btn=document.getElementById('exp_save'); if (btn) btn.disabled=true;
-  if (st){ st.textContent='Invalid ✗'; st.style.color='#a00'; }
+  setExpBorder('red'); if (btn) btn.disabled=true; if(st){ st.textContent='Invalid ✗'; st.style.color='#a00'; }
 }
 function copyErrors(){ try { const d=document.getElementById('exp_err'); if (!d) return; const txt=d.innerText || d.textContent; navigator.clipboard.writeText(txt); } catch{} }
 function toggleErrors(){ const d=document.getElementById('exp_err'); const t=document.getElementById('exp_err_t'); if(!d||!t) return; const vis = d.getAttribute('data-vis')!=='0'; d.setAttribute('data-vis', vis?'0':'1'); Array.from(d.querySelectorAll('div')).forEach((el,i)=>{ if(i>0) el.style.display = vis?'none':''; }); t.textContent = vis? 'Show':'Hide'; }
@@ -415,34 +405,25 @@ function jumpToPath(path){
     let p = String(path||'').replace(/^\$\.?/, '');
     // Try to progressively find tokens; fall back to last token
     const segs = p.split('.');
-    const esc = (s)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\$&');
+    const esc = (s)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
     let idx = 0; let found = -1;
     for (let i=0;i<segs.length;i++){
       let seg = segs[i];
       // keep raw [n] for arrays but match on property name before index
       const name = seg.replace(/\[(\d+)\]/g,'');
-      const re = new RegExp('"'+esc(name)+'"\s*:');
+      const re = new RegExp('"'+esc(name)+'"\\s*:');
       const m = re.exec(txt.slice(idx));
       if (m && typeof m.index === 'number') { found = idx + m.index; idx = found + m[0].length; } else { break; }
     }
     if (found < 0) {
       // fallback: last token only
       const last = segs[segs.length-1].replace(/\[(\d+)\]/g,'');
-      const re = new RegExp('"'+esc(last)+'"\s*:');
+      const re = new RegExp('"'+esc(last)+'"\\s*:');
       const m = re.exec(txt);
       if (m && typeof m.index === 'number') { found = m.index; }
     }
-    el.focus();
-    if (found >= 0) {
-      const end = Math.min(found+20, txt.length);
-      el.setSelectionRange(found, end);
-    }
-    // Border flash + light background highlight
-    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
-    const oldBg = el.style.backgroundColor; el.style.backgroundColor = '#fffbe6'; setTimeout(()=>{ el.style.backgroundColor = oldBg || ''; }, 700);
-    // Scroll selection roughly to center
-    const ratio = Math.max(0, Math.min(1, (found >= 0 ? found : el.selectionStart) / Math.max(1, txt.length)));
-    el.scrollTop = Math.max(0, Math.floor(el.scrollHeight * ratio - el.clientHeight / 2));
+    if (found >= 0) { el.focus(); el.setSelectionRange(found, Math.min(found+20, txt.length)); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    else { el.focus(); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
   } catch {}
 }
 
@@ -470,46 +451,24 @@ async function exportCsv(){
   const a = document.createElement('a'); a.href=url; a.download='keys.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 </script>
-<script>
-// ----- Experiment validation state and save gating -----
+</body>
+</html>
+// ----- Debounced remote validation for experiment config -----
 let EXP_VAL_TIMER = null;
 let EXP_LAST_REMOTE_OK = false;
 let EXP_LAST_VALIDATED_TEXT = '';
 let EXP_LAST_VALIDATED_AT = 0;
 const EXP_VAL_DELAY = 500;
-
-function updateExpSaveState(){
-  try {
-    const btn=document.getElementById('exp_save');
-    const st=document.getElementById('exp_status');
-    const el=document.getElementById('exp_config');
-    if(!btn||!st||!el) return;
-    const txt=el.value;
-    const eligible = EXP_LAST_REMOTE_OK && txt === EXP_LAST_VALIDATED_TEXT;
-    btn.disabled = !eligible;
-    if (eligible) {
-      const d = new Date(EXP_LAST_VALIDATED_AT);
-      const hh=String(d.getHours()).padStart(2,'0');
-      const mm=String(d.getMinutes()).padStart(2,'0');
-      const ss=String(d.getSeconds()).padStart(2,'0');
-      st.textContent = `Valid ✓ ${hh}:${mm}:${ss}`;
-      st.style.color = '#0a0';
-    } else if (EXP_LAST_REMOTE_OK) {
-      st.textContent = 'Pending…';
-      st.style.color = '#555';
-    }
-  } catch {}
-}
-
 document.getElementById('exp_config').addEventListener('input', ()=>{
+  // local quick checks first
   try {
-    const el = document.getElementById('exp_config');
-    const cfgTxt = el.value;
+    const cfgTxt = document.getElementById('exp_config').value;
     const cfg = cfgTxt ? JSON.parse(cfgTxt) : {};
     const verr = validateExperimentConfig(cfg);
     EXP_LAST_REMOTE_OK = false;
     showExpErr(verr ? [verr] : []);
     setExpBorder(verr ? 'red' : '');
+    // debounce remote validation if local ok
     if (!verr) {
       if (EXP_VAL_TIMER) clearTimeout(EXP_VAL_TIMER);
       EXP_VAL_TIMER = setTimeout(()=>{ validateExperimentRemote().catch(()=>{}); }, EXP_VAL_DELAY);
@@ -517,27 +476,4 @@ document.getElementById('exp_config').addEventListener('input', ()=>{
   } catch(e) {
     EXP_LAST_REMOTE_OK = false; showExpErr(['invalid config JSON']); setExpBorder('red');
   }
-  updateExpSaveState();
 });
-
-// Override validateExperimentRemote to record last valid text/time
-(function(){
-  const _orig = validateExperimentRemote;
-  validateExperimentRemote = async function(){
-    let cfg={}; let txt='';
-    try { txt=document.getElementById('exp_config').value; cfg = txt?JSON.parse(txt):{}; } catch(e){ showExpErr(['invalid config JSON']); updateExpSaveState(); return; }
-    const r = await fetch('/api/experiments/validate',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TOK},body:JSON.stringify({config:cfg})});
-    if (!r.ok) { showExpErr(['validation failed']); updateExpSaveState(); return; }
-    const js = await r.json();
-    EXP_LAST_REMOTE_OK = !js.errors || js.errors.length===0;
-    if (EXP_LAST_REMOTE_OK) { EXP_LAST_VALIDATED_TEXT = txt; EXP_LAST_VALIDATED_AT = Date.now(); }
-    showExpErr(js.errors||[]);
-    updateExpSaveState();
-  }
-})();
-
-// Initialize save state on load
-updateExpSaveState();
-</script>
-</body>
-</html>
