@@ -1,11 +1,11 @@
 plugins {
   id("org.springframework.boot") version "3.3.3" apply false
   id("io.spring.dependency-management") version "1.1.6" apply false
-  id("java") apply false
+  // core plugins like 'java' need not be declared here in Gradle 9+
 }
 
 allprojects {
-  group = "io.playtics"
+  group = "io.pit"
   version = "0.1.0"
 
   repositories {

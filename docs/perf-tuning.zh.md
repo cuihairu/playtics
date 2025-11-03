@@ -1,4 +1,4 @@
-# 网关性能调参建议（Playtics Gateway）
+# 网关性能调参建议（Pit Gateway）
 
 目标：在高吞吐（10k–50k evts/s）下保持稳定低延迟与低错误率。以下建议按 JVM、Reactor Netty、Kafka Producer、操作系统与部署层面给出。
 
@@ -10,13 +10,13 @@ JVM/GC
 Reactor Netty（服务端）
 - EventLoop 线程数：默认≈CPU 核数 x 2；一般无需修改
 - 响应压缩：已开启 `server.compression.enabled=true`（对较大错误/诊断响应有益）
-- 大请求：限制 `playtics.request.maxBytes`（默认 1MB），避免单请求过大带来延迟尖峰
+- 大请求：限制 `pit.request.maxBytes`（默认 1MB），避免单请求过大带来延迟尖峰
 - JSON 解析：优先 NDJSON；客户端批量 50–100，减少系统调用与序列化开销
 
 Kafka Producer（Avro）
 - 调参：
-  - `playtics.kafka.producer.lingerMs`：5–20ms（批量更大、吞吐更高，但延迟上升）
-  - `playtics.kafka.producer.batchSize`：64–256KB（视事件大小而定）
+  - `pit.kafka.producer.lingerMs`：5–20ms（批量更大、吞吐更高，但延迟上升）
+  - `pit.kafka.producer.batchSize`：64–256KB（视事件大小而定）
   - 其他：`acks=all`（已设），`compression=zstd` 可在 Broker 允许时考虑（需同时在 Producer 上开启）
 - 分区：确保 `events_raw` 分区数与消费并行度对齐，否则下游会形成热点
 

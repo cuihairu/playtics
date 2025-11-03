@@ -1,4 +1,4 @@
-rootProject.name = "playtics"
+rootProject.name = "pit"
 
 include(
   "libs:common-model",

@@ -7,7 +7,7 @@ if [ -x ./gradlew ]; then
   ./gradlew :services:gateway-service:test :jobs:flink:events-enrich-job:assemble -q || true
 fi
 
-git tag -a "v$VER" -m "Playtics $VER"
+git tag -a "v$VER" -m "Pit $VER"
 if git remote -v >/dev/null 2>&1; then
   git push origin "v$VER"
 fi

@@ -29,7 +29,7 @@ function assign(exp: {id:string,salt:string,variants:{name:string,weight:number}
   return exp.variants[0].name;
 }
 // 使用：从 /api/config/{projectId} 拉取实验；过滤 targeting；按 userId/设备分配 variant；上报曝光
-playtics.expose(exp.id, variant);
+pit.expose(exp.id, variant);
 ```
 
 SDK 使用示例
@@ -53,14 +53,14 @@ val raw = pt.fetchExperiments("http://10.0.2.2:8085", "p1") // returns JSON stri
 ```
 - iOS (Swift)
 ```swift
-Playtics.shared.fetchExperiments(URL(string:"http://localhost:8085")!, projectId:"p1") { result in
-  if case .success(let data) = result { /* decode and assign via Playtics.assignVariant */ }
+Pit.shared.fetchExperiments(URL(string:"http://localhost:8085")!, projectId:"p1") { result in
+  if case .success(let data) = result { /* decode and assign via Pit.assignVariant */ }
 }
 ```
 - Unity (C#)
 ```csharp
-var variant = Playtics.Playtics.AssignVariant("exp1", "salt", new List<Tuple<string,int>>{ Tuple.Create("A",50), Tuple.Create("B",50) }, userKey);
-Playtics.Playtics.Track("experiment_exposure", new Dictionary<string,object>{{"exp","exp1"},{"variant",variant}});
+var variant = Pit.Pit.AssignVariant("exp1", "salt", new List<Tuple<string,int>>{ Tuple.Create("A",50), Tuple.Create("B",50) }, userKey);
+Pit.Pit.Track("experiment_exposure", new Dictionary<string,object>{{"exp","exp1"},{"variant",variant}});
 ```
 
 事件规范

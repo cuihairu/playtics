@@ -1,4 +1,4 @@
-# Playtics 全 Java 架构（Monorepo）
+# Pit 全 Java 架构（Monorepo）
 
 目标：统一 Java 技术栈，提供高吞吐采集、实时/离线计算、快速查询与完善治理；优先 ClickHouse 存储。
 

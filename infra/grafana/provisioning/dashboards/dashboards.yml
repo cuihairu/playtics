@@ -1,14 +1,14 @@
 apiVersion: 1
 disableDeletion: false
 folders:
-  - uid: playtics
-    title: Playtics
+  - uid: pit
+    title: Pit
     provisioned: true
     folders: []
     dashboards:
-      - uid: playtics-overview
-        file: /var/lib/grafana/dashboards/playtics-overview.json
-      - uid: playtics-jvm
-        file: /var/lib/grafana/dashboards/playtics-jvm.json
-      - uid: playtics-http
-        file: /var/lib/grafana/dashboards/playtics-http.json
+      - uid: pit-overview
+        file: /var/lib/grafana/dashboards/pit-overview.json
+      - uid: pit-jvm
+        file: /var/lib/grafana/dashboards/pit-jvm.json
+      - uid: pit-http
+        file: /var/lib/grafana/dashboards/pit-http.json

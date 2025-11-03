@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: playtics-control
-  namespace: playtics
+  name: pit-control
+  namespace: pit
 spec:
   replicas: 1
-  selector: { matchLabels: { app: playtics-control } }
+  selector: { matchLabels: { app: pit-control } }
   template:
-    metadata: { labels: { app: playtics-control } }
+    metadata: { labels: { app: pit-control } }
     spec:
       containers:
         - name: control
-          image: your-registry/playtics-control:latest
+          image: your-registry/pit-control:latest
           ports: [{containerPort: 8085}]
           env:
             - name: SPRING_CONFIG_ADDITIONAL_LOCATION
@@ -22,17 +22,17 @@ spec:
       volumes:
         - name: cfg
           configMap:
-            name: playtics-control-config
+            name: pit-control-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: playtics-control
-  namespace: playtics
+  name: pit-control
+  namespace: pit
   annotations: {}
 spec:
   type: ClusterIP
-  selector: { app: playtics-control }
+  selector: { app: pit-control }
   ports:
     - port: 8085
       targetPort: 8085

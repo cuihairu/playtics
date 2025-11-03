@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "Playtics",
+    name: "Pit",
     platforms: [ .iOS(.v13), .macOS(.v12) ],
-    products: [ .library(name: "Playtics", targets: ["Playtics"]) ],
+    products: [ .library(name: "Pit", targets: ["Pit"]) ],
     targets: [
-        .target(name: "Playtics", path: "Sources/Playtics"),
-        .testTarget(name: "PlayticsTests", dependencies: ["Playtics"], path: "Tests/PlayticsTests")
+        .target(name: "Pit", path: "Sources/Pit"),
+        .testTarget(name: "PitTests", dependencies: ["Pit"], path: "Tests/PitTests")
     ]
 )

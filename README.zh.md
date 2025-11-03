@@ -1,4 +1,4 @@
-# Playtics（游戏数据分析栈）
+# Pit（游戏数据分析栈）
 
 - 入口：Spring Boot 网关（限流/治理/PII/Schema）→ Kafka（Avro+Registry）→ Flink（富化/会话/留存/漏斗）→ ClickHouse → Superset
 - SDK：Web/Android/Unity/iOS（批量/NDJSON/gzip/离线/会话）

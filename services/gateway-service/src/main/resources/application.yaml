@@ -10,12 +10,12 @@ management:
       exposure:
         include: health,info,metrics
 
-playtics:
+pit:
   kafka:
     bootstrap: localhost:9092
-    topic: playtics.events_raw
+    topic: pit.events_raw
     registryUrl: http://localhost:8081/apis/registry/v2
-    dlqTopic: playtics.deadletter
+    dlqTopic: pit.deadletter
     producer:
       lingerMs: 5
       batchSize: 65536

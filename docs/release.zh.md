@@ -31,15 +31,15 @@ python3 scripts/perf-report.py var/perf > var/perf/report.csv
 1) 构建并推送镜像
 ```bash
 # Gateway
-cd services/gateway-service && docker build -t <registry>/playtics-gateway:<tag> . && docker push <...>
+cd services/gateway-service && docker build -t <registry>/pit-gateway:<tag> . && docker push <...>
 # Control
-cd ../control-service && docker build -t <registry>/playtics-control:<tag> . && docker push <...>
+cd ../control-service && docker build -t <registry>/pit-control:<tag> . && docker push <...>
 ```
 2) 使用 Helm 安装
 ```bash
-helm upgrade --install playtics ./infra/helm/playtics -n playtics --create-namespace \
-  --set image.gateway=<registry>/playtics-gateway:<tag> \
-  --set image.control=<registry>/playtics-control:<tag> \
+helm upgrade --install pit ./infra/helm/pit -n pit --create-namespace \
+  --set image.gateway=<registry>/pit-gateway:<tag> \
+  --set image.control=<registry>/pit-control:<tag> \
   --set env.kafkaBootstrap=<kafka:9092> \
   --set env.registryUrl=<apicurio-url> \
   --set env.clickhouseUrl=<jdbc:clickhouse://...> \

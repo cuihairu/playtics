@@ -7,7 +7,7 @@
 - k6：
   - 可使用 Docker 运行：
     ```bash
-    docker run --rm -i grafana/k6 run - < scripts/loadtest/k6-playtics.js \
+    docker run --rm -i grafana/k6 run - < scripts/loadtest/k6-pit.js \
       -e ENDPOINT=http://host.docker.internal:8080 \
       -e API_KEY=pk_test_example -e PROJECT_ID=p1 \
       -e RATE=200 -e DURATION=60s -e BATCH=50

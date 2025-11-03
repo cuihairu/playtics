@@ -1,13 +1,13 @@
-# Playtics Unity SDK（C#）
+# Pit Unity SDK（C#）
 
 用法
-1) 将 `sdks/unity/Runtime/Playtics.cs` 拷贝到你的 Unity 工程（建议 `Assets/Playtics/Runtime/`）
+1) 将 `sdks/unity/Runtime/Pit.cs` 拷贝到你的 Unity 工程（建议 `Assets/Pit/Runtime/`）
 2) 启动时初始化：
 ```csharp
-using Playtics;
+using Pit;
 
 void Start() {
-  Playtics.Playtics.Init(new Options {
+  Pit.Pit.Init(new Options {
     apiKey = "pk_test_example",
     endpoint = "http://localhost:8080",
     projectId = "p1",
@@ -17,11 +17,11 @@ void Start() {
 ```
 3) 上报事件：
 ```csharp
-Playtics.Playtics.Track("level_start", new Dictionary<string, object>{{"level",1}});
-Playtics.Playtics.SetUserId("u1");
-Playtics.Playtics.Expose("paywall","B");
-Playtics.Playtics.Revenue(9.99, "USD", new Dictionary<string, object>{{"sku","noads"}});
-Playtics.Playtics.Flush();
+Pit.Pit.Track("level_start", new Dictionary<string, object>{{"level",1}});
+Pit.Pit.SetUserId("u1");
+Pit.Pit.Expose("paywall","B");
+Pit.Pit.Revenue(9.99, "USD", new Dictionary<string, object>{{"sku","noads"}});
+Pit.Pit.Flush();
 ```
 
 特性

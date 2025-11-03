@@ -1,4 +1,4 @@
-# Playtics Android SDK（Kotlin）
+# Pit Android SDK（Kotlin）
 
 特性
 - 批量发送：默认 5s 或 50 条；`application/x-ndjson`；自动 `gzip`
@@ -8,9 +8,9 @@
 
 快速开始
 ```kotlin
-val pt = Playtics(
+val pt = Pit(
   context,
-  Playtics.Options(
+  Pit.Options(
     apiKey = "pk_test_example",
     endpoint = "http://10.0.2.2:8080", // 模拟器访问本机网关
     projectId = "p1",

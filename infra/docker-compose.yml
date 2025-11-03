@@ -35,7 +35,7 @@ services:
     image: apache/superset:3.0.2
     ports: ["8088:8088"]
     environment:
-      - SUPERSET_SECRET_KEY=playtics
+      - SUPERSET_SECRET_KEY=pit
     depends_on: [clickhouse]
 
   otel-collector:

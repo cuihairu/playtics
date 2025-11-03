@@ -1,4 +1,4 @@
--- ClickHouse DDL（Playtics）
+-- ClickHouse DDL（Pit）
 
 CREATE TABLE IF NOT EXISTS events
 (

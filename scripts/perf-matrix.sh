@@ -21,7 +21,7 @@ for r in $RATES; do
       -e ENDPOINT="$ENDPOINT" -e API_KEY="$API_KEY" -e PROJECT_ID="$PROJECT_ID" \
       -e RATE="$r" -e DURATION="$DURATION" -e BATCH="$b" \
       -v "$PWD":/work -w /work \
-      grafana/k6 run --summary-export "$FN" - < scripts/loadtest/k6-playtics.js >/dev/null || true
+      grafana/k6 run --summary-export "$FN" - < scripts/loadtest/k6-pit.js >/dev/null || true
     echo "Saved $FN" >&2
   done
 done

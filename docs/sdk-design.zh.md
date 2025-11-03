@@ -31,10 +31,10 @@
 
 示例（Web TS）
 ```ts
-Playtics.init({ apiKey, endpoint, projectId });
-Playtics.track('level_start', { level: 3 });
-Playtics.setUserId('u123');
-Playtics.expose('paywall', 'B');
-Playtics.revenue(9.99, 'USD', { sku: 'noads' });
-await Playtics.flush();
+Pit.init({ apiKey, endpoint, projectId });
+Pit.track('level_start', { level: 3 });
+Pit.setUserId('u123');
+Pit.expose('paywall', 'B');
+Pit.revenue(9.99, 'USD', { sku: 'noads' });
+await Pit.flush();
 ```

@@ -1,6 +1,6 @@
-export type PlayticsOptions = {
+export type PitOptions = {
   apiKey: string;
-  endpoint: string; // e.g. https://ingest.playtics.io
+  endpoint: string; // e.g. https://ingest.pit.io
   projectId: string;
   deviceId?: string;
   flushIntervalMs?: number; // default 5000
@@ -86,7 +86,7 @@ class Queue {
   restore(items: Event[]) { this.items = items; this.bytes = items.reduce((a,i)=>a+JSON.stringify(i).length+1,0); }
 }
 
-export class Playtics {
+export class Pit {
   private apiKey: string;
   private endpoint: string;
   private projectId: string;
@@ -102,7 +102,7 @@ export class Playtics {
   private lastActive = 0;
   private debug = false;
 
-  constructor(opts: PlayticsOptions) {
+  constructor(opts: PitOptions) {
     this.apiKey = opts.apiKey;
     this.endpoint = opts.endpoint.replace(/\/$/, '');
     this.projectId = opts.projectId;
@@ -112,7 +112,7 @@ export class Playtics {
     this.sessionGapMs = opts.sessionGapMs ?? 30*60*1000;
     this.debug = !!opts.debug;
 
-    const k = `pt_device_id_${this.projectId}`;
+    const k = `pit_device_id_${this.projectId}`;
     this.deviceId = opts.deviceId || storageGet(k) || this.randomDeviceId();
     storageSet(k, this.deviceId);
 
@@ -149,7 +149,7 @@ export class Playtics {
     };
     this.queue.push(evt);
     this.lastActive = ts;
-    if (this.debug) console.debug('[playtics] queued', evt.event_id, eventName);
+    if (this.debug) console.debug('[pit] queued', evt.event_id, eventName);
     if (this.queue.overLimit()) this.flush();
     return evt.event_id;
   }
@@ -217,7 +217,7 @@ export class Playtics {
       try {
         const res = await fetch(url, { method: 'POST', headers, body });
         if (res.ok) {
-          if (this.debug) console.debug('[playtics] flushed', evts.length, 'gzip=', useGzip);
+          if (this.debug) console.debug('[pit] flushed', evts.length, 'gzip=', useGzip);
           return;
         }
         if (res.status === 429) {
@@ -232,7 +232,7 @@ export class Playtics {
           const rest = this.queue.snapshot();
           this.queue.restore([...evts, ...rest]);
           storageSet(this.queueKey(), JSON.stringify(this.queue.snapshot()));
-          if (this.debug) console.warn('[playtics] flush failed, stored offline', e);
+          if (this.debug) console.warn('[pit] flush failed, stored offline', e);
           return;
         }
         await sleep(backoff + jitter(250));
@@ -272,7 +272,7 @@ export async function fetchExperiments(controlEndpoint: string, projectId: strin
   return r.json();
 }
 
-export async function assignAllAndExpose(pt: Playtics, exps: ExperimentCfg[], userKey: string, platform?: string, appVersion?: string): Promise<Record<string,string>> {
+export async function assignAllAndExpose(pt: Pit, exps: ExperimentCfg[], userKey: string, platform?: string, appVersion?: string): Promise<Record<string,string>> {
   const res: Record<string,string> = {};
   for (const e of exps) {
     const cfg = e.config || {};
@@ -308,7 +308,7 @@ export function matchTargeting(t: Targeting|undefined, ctx: ExpContext): boolean
   return true;
 }
 
-export async function assignAllWithTargeting(pt: Playtics, exps: ExperimentCfg[], userKey: string, ctx: ExpContext): Promise<Record<string,string>> {
+export async function assignAllWithTargeting(pt: Pit, exps: ExperimentCfg[], userKey: string, ctx: ExpContext): Promise<Record<string,string>> {
   const res: Record<string,string> = {};
   for (const e of exps) {
     const cfg = e.config || {} as any;
@@ -367,7 +367,7 @@ export function startExperimentsAutoRefresh(controlEndpoint: string, projectId: 
   return () => { stopped = true; clearInterval(h); };
 }
 
-export async function ensureFreshExperimentsAndAssign(pt: Playtics, controlEndpoint: string, projectId: string, userKey: string, ctx: ExpContext, ttlMs = 300_000): Promise<Record<string,string>> {
+export async function ensureFreshExperimentsAndAssign(pt: Pit, controlEndpoint: string, projectId: string, userKey: string, ctx: ExpContext, ttlMs = 300_000): Promise<Record<string,string>> {
   const exps = await fetchExperimentsCached(controlEndpoint, projectId, ttlMs);
   return assignAllWithTargeting(pt, exps, userKey, ctx);
 }

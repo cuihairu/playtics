@@ -13,4 +13,4 @@ dependencies {
   runtimeOnly("com.h2database:h2")
 }
 
-springBoot { mainClass.set("io.playtics.control.Application") }
+springBoot { mainClass.set("io.pit.control.Application") }

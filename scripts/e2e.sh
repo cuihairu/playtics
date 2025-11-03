@@ -61,7 +61,7 @@ if command -v flink >/dev/null 2>&1; then
   CLICKHOUSE_URL=${CLICKHOUSE_URL:-jdbc:clickhouse://localhost:8123/default} \
   KAFKA_BOOTSTRAP=${KAFKA_BOOTSTRAP:-localhost:9092} \
   REGISTRY_URL=${REGISTRY_URL:-http://localhost:8081/apis/registry/v2} \
-  KAFKA_TOPIC=${KAFKA_TOPIC:-playtics.events_raw} \
+  KAFKA_TOPIC=${KAFKA_TOPIC:-pit.events_raw} \
   bash scripts/run_flink.sh || true
   echo "Wait 10s for sinks to flush"
   sleep 10

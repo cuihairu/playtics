@@ -14,5 +14,5 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "playtics-android"
-include(":playtics-android")
+rootProject.name = "pit-android"
+include(":pit-android")

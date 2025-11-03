@@ -37,7 +37,7 @@
     ```
 
 网关集成
-- application.yaml 配置 `playtics.control.url: http://localhost:8085`
+- application.yaml 配置 `pit.control.url: http://localhost:8085`
  - 网关在鉴权与限流/过滤阶段动态拉取策略，60 秒缓存（每个 API Key 独立缓存）
  - 覆盖范围：`rpm`/`ipRpm`、`propsAllowlist`、`piiEmail`/`piiPhone`/`piiIp`、`denyKeys`、`maskKeys`
 - 支持覆盖：
@@ -54,7 +54,7 @@ curl -sS -X POST 'http://localhost:8085/api/keys' -H 'content-type: application/
 ```
 
 安全（简单模式）
-- `playtics.admin.token`: 控制面 API 的简易管理令牌（默认 `admin`，生产请更换或接入企业认证）
+- `pit.admin.token`: 控制面 API 的简易管理令牌（默认 `admin`，生产请更换或接入企业认证）
 - 客户端请求需携带 `x-admin-token: <token>`；静态页面可在顶部填写后保存，后续请求自动附带
 - 列出/搜索 Keys
   - GET /api/keys?q=&projectId=&page=&size=
