@@ -93,9 +93,8 @@ public class JwtUtil {
      */
     public boolean isTokenValid(String token) {
         try {
-            Jwts.parserBuilder()
+            Jwts.parser()
                 .setSigningKey(getSigningKey())
-                .build()
                 .parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
@@ -125,9 +124,8 @@ public class JwtUtil {
     }
 
     private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
+        return Jwts.parser()
             .setSigningKey(getSigningKey())
-            .build()
             .parseClaimsJws(token)
             .getBody();
     }

@@ -100,6 +100,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(409, message);
     }
 
+    public static <T> ApiResponse<T> validationError(String message, T errors) {
+        return new ApiResponse<>(400, message, errors);
+    }
+
     // 分页响应
     public static <T> ApiResponse<T> page(T data, long total, int page, int size) {
         ApiResponse<T> response = success(data);
