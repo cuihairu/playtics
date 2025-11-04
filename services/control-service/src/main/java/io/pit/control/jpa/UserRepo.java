@@ -102,4 +102,10 @@ public interface UserRepo extends JpaRepository<UserEntity, String> {
      * 统计活跃用户数量
      */
     long countByStatusAndDeletedAtIsNull(UserEntity.UserStatus status);
+
+    /**
+     * 统计指定全局角色的未删除用户数量
+     * 用于在删除用户时保护最后一位 SUPER_ADMIN 不被删除
+     */
+    long countByGlobalRoleAndDeletedAtIsNull(UserEntity.GlobalRole globalRole);
 }

@@ -120,10 +120,12 @@ public class UserService {
             .filter(user -> user.deletedAt == null)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-        // 检查是否是超级管理员
+        // 检查是否是超级管理员：禁止删除最后一位 SUPER_ADMIN
         if (entity.globalRole == UserEntity.GlobalRole.SUPER_ADMIN) {
-            // For now, just allow deletion - proper super admin count check would require repo method
-            // TODO: Implement countByGlobalRoleAndDeletedAtIsNull in UserRepo
+            long cnt = userRepo.countByGlobalRoleAndDeletedAtIsNull(UserEntity.GlobalRole.SUPER_ADMIN);
+            if (cnt <= 1) {
+                throw new IllegalStateException("Cannot delete the last SUPER_ADMIN user");
+            }
         }
 
         // 软删除用户

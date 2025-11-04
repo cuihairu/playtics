@@ -272,12 +272,19 @@ export async function fetchExperiments(controlEndpoint: string, projectId: strin
   return r.json();
 }
 
+/**
+ * Assign variants for all experiments and send exposure events.
+ * If experiment config provides `targeting`, basic targeting is applied using `platform` and `appVersion`.
+ * For full targeting context (including `country`), prefer `assignAllWithTargeting`.
+ */
 export async function assignAllAndExpose(pt: Pit, exps: ExperimentCfg[], userKey: string, platform?: string, appVersion?: string): Promise<Record<string,string>> {
   const res: Record<string,string> = {};
+  const ctx: ExpContext = { platform, appVersion };
   for (const e of exps) {
-    const cfg = e.config || {};
+    const cfg = e.config || {} as any;
+    const t = (cfg.targeting as Targeting) || undefined;
+    if (!matchTargeting(t, ctx)) continue;
     const vars = (cfg.variants as Variant[]) || [];
-    // TODO: apply targeting if provided (platform/appVersion/country etc.)
     const v = assignVariant({ id: e.id, salt: e.salt, variants: vars }, userKey);
     res[e.id] = v;
     pt.expose(e.id, v);
